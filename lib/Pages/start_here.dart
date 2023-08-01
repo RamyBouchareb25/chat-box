@@ -3,43 +3,8 @@ import 'package:chat_app/Pages/sign_up.dart';
 import 'package:chat_app/models/global.dart';
 import 'package:flutter/material.dart';
 
-class Home extends StatelessWidget {
-  const Home({super.key});
-
-  Widget thirdPartyConnect() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        FloatingActionButton(
-          heroTag: "Facebook",
-          backgroundColor: Colors.transparent,
-          onPressed: () {},
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(100),
-              side: const BorderSide(color: Colors.white)),
-          child: Image.asset("Assets/Facebook.png"),
-        ),
-        FloatingActionButton(
-          heroTag: "Google",
-          backgroundColor: Colors.transparent,
-          onPressed: () {},
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(100),
-              side: const BorderSide(color: Colors.white)),
-          child: Image.asset("Assets/Google.png"),
-        ),
-        FloatingActionButton(
-          heroTag: "Apple",
-          backgroundColor: Colors.transparent,
-          onPressed: () {},
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(100),
-              side: const BorderSide(color: Colors.white)),
-          child: Image.asset("Assets/Apple.png"),
-        ),
-      ],
-    );
-  }
+class Start extends StatelessWidget {
+  const Start({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -79,10 +44,7 @@ class Home extends StatelessWidget {
                   "Our chat app is the perfect way to stay connected with friends and family.",
                   style: TextStyle(color: grey, fontSize: 20),
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 40, right: 40),
-                  child: thirdPartyConnect(),
-                ),
+                thirdPartyConnect(Colors.white),
                 Image.asset("Assets/Or.png"),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(

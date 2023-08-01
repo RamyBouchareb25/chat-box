@@ -1,6 +1,11 @@
+import 'package:chat_app/Pages/home_page.dart';
+import 'package:chat_app/Pages/start_here.dart';
+import 'package:chat_app/models/form_field.dart';
 import 'package:chat_app/models/global.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:chat_app/auth.dart';
 
 enum FormTypes {
   email,
@@ -16,7 +21,26 @@ class SignUp extends StatefulWidget {
 }
 
 class _SignUpState extends State<SignUp> {
+  String? errorMessage;
+
+  Future<void> createUserWithEmailAndPassword() async {
+    try {
+      await Auth().createUserWithEmailAndPassword(
+        email: controllerEMail.text,
+        password: controllerPassword.text,
+      );
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        errorMessage = e.message;
+      });
+    }
+  }
+
   final TextEditingController controllerPassword = TextEditingController();
+  final TextEditingController controllerName = TextEditingController();
+  final TextEditingController controllerEMail = TextEditingController();
+  final TextEditingController controllerConfirmPassword =
+      TextEditingController();
 
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   bool _isFormValid = false;
@@ -53,10 +77,47 @@ class _SignUpState extends State<SignUp> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    _buildName(),
-                    _buildEMail(),
-                    _buildPassword(),
-                    _buildConfirmPassword(),
+                    CustomFormField(
+                        obscureText: false,
+                        label: "Your Name",
+                        validator: (value) {
+                          return value!.length < 3
+                              ? "Name must be at least 3 characters long"
+                              : null;
+                        },
+                        controller: controllerName,
+                        onChanged: _validateForm),
+                    CustomFormField(
+                        obscureText: false,
+                        label: "Your E-Mail",
+                        validator: (value) {
+                          return EmailValidator.validate(value!)
+                              ? null
+                              : "Please enter a valid email";
+                        },
+                        controller: controllerEMail,
+                        onChanged: _validateForm),
+                    CustomFormField(
+                        obscureText: true,
+                        label: "Password",
+                        validator: (value) {
+                          return value!.length < 8
+                              ? "Password must be at least 8 characters long"
+                              : null;
+                        },
+                        controller: controllerPassword,
+                        onChanged: _validateForm),
+                    CustomFormField(
+                      label: "Confirm Password",
+                      validator: (value) {
+                        return value! != controllerPassword.text
+                            ? "Password must be the same !"
+                            : null;
+                      },
+                      controller: controllerConfirmPassword,
+                      onChanged: _validateForm,
+                      obscureText: true,
+                    ),
                   ],
                 ),
               )),
@@ -74,10 +135,11 @@ class _SignUpState extends State<SignUp> {
                     borderRadius: BorderRadius.circular(15))),
             onPressed: () {
               if (formKey.currentState!.validate()) {
+                createUserWithEmailAndPassword();
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const SignUp(),
+                        builder: (context) => Home(),
                         fullscreenDialog: true));
               }
             },
@@ -98,150 +160,5 @@ class _SignUpState extends State<SignUp> {
         _isFormValid = false;
       });
     }
-  }
-
-  Widget _buildConfirmPassword() {
-    return Column(
-      children: [
-        Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-            alignment: Alignment.centerLeft,
-            child: const Text(
-              "Confirm Password",
-              style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: primaryColor),
-            )),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          decoration: BoxDecoration(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(15)),
-          child: TextFormField(
-            onChanged: (value) {
-              _validateForm();
-            },
-            validator: (value) {
-              return value! != controllerPassword.text
-                  ? "Password must be the same !"
-                  : null;
-            },
-            cursorHeight: 25,
-            decoration: const InputDecoration(
-                border: UnderlineInputBorder(borderSide: BorderSide())),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPassword() {
-    return Column(
-      children: [
-        Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-            alignment: Alignment.centerLeft,
-            child: const Text(
-              "Password",
-              style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: primaryColor),
-            )),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          decoration: BoxDecoration(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(15)),
-          child: TextFormField(
-            onChanged: (value) {
-              _validateForm();
-            },
-            controller: controllerPassword,
-            validator: (value) {
-              return value!.length < 8
-                  ? "Password must be at least 8 characters long"
-                  : null;
-            },
-            cursorHeight: 25,
-            decoration: const InputDecoration(
-                border: UnderlineInputBorder(borderSide: BorderSide())),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildEMail() {
-    return Column(
-      children: [
-        Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-            alignment: Alignment.centerLeft,
-            child: const Text(
-              "Your email",
-              style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: primaryColor),
-            )),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          decoration: BoxDecoration(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(15)),
-          child: TextFormField(
-            onChanged: (value) {
-              _validateForm();
-            },
-            validator: (value) {
-              return EmailValidator.validate(value!)
-                  ? null
-                  : "Please enter a valid email";
-            },
-            cursorHeight: 25,
-            decoration: const InputDecoration(
-                border: UnderlineInputBorder(borderSide: BorderSide())),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildName() {
-    return Column(
-      children: [
-        Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-            alignment: Alignment.centerLeft,
-            child: const Text(
-              "Your Name",
-              style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: primaryColor),
-            )),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          decoration: BoxDecoration(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(15)),
-          child: TextFormField(
-            onChanged: (value) {
-              _validateForm();
-            },
-            validator: (value) {
-              return value!.length < 3
-                  ? "Name must be at least 3 characters long"
-                  : null;
-            },
-            cursorHeight: 25,
-            decoration: const InputDecoration(
-                border: UnderlineInputBorder(borderSide: BorderSide())),
-          ),
-        ),
-      ],
-    );
   }
 }

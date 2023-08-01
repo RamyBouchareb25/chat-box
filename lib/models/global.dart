@@ -21,3 +21,45 @@ AppBar appBar(BuildContext context) {
     elevation: 0,
   );
 }
+
+Widget thirdPartyConnect(Color stroke) {
+  return Padding(
+      padding: const EdgeInsets.only(left: 40, right: 40),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          FloatingActionButton(
+            elevation: 0,
+            heroTag: "Facebook",
+            backgroundColor: Colors.transparent,
+            onPressed: () {},
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(100),
+                side: BorderSide(color: stroke)),
+            child: Image.asset("Assets/Facebook.png"),
+          ),
+          FloatingActionButton(
+            elevation: 0,
+            heroTag: "Google",
+            backgroundColor: Colors.transparent,
+            onPressed: () {},
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(100),
+                side: BorderSide(color: stroke)),
+            child: Image.asset("Assets/Google.png"),
+          ),
+          FloatingActionButton(
+            elevation: 0,
+            heroTag: "Apple",
+            backgroundColor: Colors.transparent,
+            onPressed: () {},
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(100),
+                side: BorderSide(color: stroke)),
+            child: Image.asset(stroke != Colors.white
+                ? "Assets/AppleDark.png"
+                : "Assets/Apple.png"),
+          ),
+        ],
+      ));
+}
