@@ -1,9 +1,45 @@
+import 'package:chat_app/Pages/log_in.dart';
 import 'package:chat_app/Pages/sign_up.dart';
 import 'package:chat_app/models/global.dart';
 import 'package:flutter/material.dart';
 
 class Home extends StatelessWidget {
   const Home({super.key});
+
+  Widget thirdPartyConnect() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        FloatingActionButton(
+          heroTag: "Facebook",
+          backgroundColor: Colors.transparent,
+          onPressed: () {},
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(100),
+              side: const BorderSide(color: Colors.white)),
+          child: Image.asset("Assets/Facebook.png"),
+        ),
+        FloatingActionButton(
+          heroTag: "Google",
+          backgroundColor: Colors.transparent,
+          onPressed: () {},
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(100),
+              side: const BorderSide(color: Colors.white)),
+          child: Image.asset("Assets/Google.png"),
+        ),
+        FloatingActionButton(
+          heroTag: "Apple",
+          backgroundColor: Colors.transparent,
+          onPressed: () {},
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(100),
+              side: const BorderSide(color: Colors.white)),
+          child: Image.asset("Assets/Apple.png"),
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,38 +81,7 @@ class Home extends StatelessWidget {
                 ),
                 Padding(
                   padding: const EdgeInsets.only(left: 40, right: 40),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      FloatingActionButton(
-                        heroTag: "Facebook",
-                        backgroundColor: Colors.transparent,
-                        onPressed: () {},
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(100),
-                            side: const BorderSide(color: Colors.white)),
-                        child: Image.asset("Assets/Facebook.png"),
-                      ),
-                      FloatingActionButton(
-                        heroTag: "Google",
-                        backgroundColor: Colors.transparent,
-                        onPressed: () {},
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(100),
-                            side: const BorderSide(color: Colors.white)),
-                        child: Image.asset("Assets/Google.png"),
-                      ),
-                      FloatingActionButton(
-                        heroTag: "Apple",
-                        backgroundColor: Colors.transparent,
-                        onPressed: () {},
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(100),
-                            side: const BorderSide(color: Colors.white)),
-                        child: Image.asset("Assets/Apple.png"),
-                      ),
-                    ],
-                  ),
+                  child: thirdPartyConnect(),
                 ),
                 Image.asset("Assets/Or.png"),
                 ElevatedButton(
@@ -93,8 +98,10 @@ class Home extends StatelessWidget {
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15))),
                   onPressed: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => SignUp()));
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const SignUp()));
                   },
                   child: const Text("sign up with mail"),
                 ),
@@ -106,7 +113,12 @@ class Home extends StatelessWidget {
                       style: TextStyle(color: grey, fontSize: 15),
                     ),
                     TextButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const Login()));
+                      },
                       child: const Text(
                         "Log in",
                         style: TextStyle(color: Colors.white),
