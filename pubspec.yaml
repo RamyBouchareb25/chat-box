@@ -40,6 +40,7 @@ dependencies:
   flutter_pw_validator: ^1.6.0
   firebase_core: ^2.15.0
   firebase_auth: ^4.7.2
+  google_sign_in: ^6.1.4
 
 dev_dependencies:
   flutter_test:

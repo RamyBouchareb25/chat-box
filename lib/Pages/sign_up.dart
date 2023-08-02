@@ -1,5 +1,4 @@
 import 'package:chat_app/Pages/home_page.dart';
-import 'package:chat_app/Pages/start_here.dart';
 import 'package:chat_app/models/form_field.dart';
 import 'package:chat_app/models/global.dart';
 import 'package:email_validator/email_validator.dart';
@@ -139,8 +138,7 @@ class _SignUpState extends State<SignUp> {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => Home(),
-                        fullscreenDialog: true));
+                        builder: (context) => Home(), fullscreenDialog: true));
               }
             },
             child: const Text("Create Account"),

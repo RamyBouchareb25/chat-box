@@ -17,7 +17,7 @@ class Home extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Center(
-            child: Text("Welcome ${user?.email}"),
+            child: Text("Welcome ${user?.displayName}"),
           ),
           ElevatedButton(
             onPressed: _signOut,

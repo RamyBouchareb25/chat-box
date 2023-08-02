@@ -44,7 +44,7 @@ class Start extends StatelessWidget {
                   "Our chat app is the perfect way to stay connected with friends and family.",
                   style: TextStyle(color: grey, fontSize: 20),
                 ),
-                thirdPartyConnect(Colors.white),
+                thirdPartyConnect(Colors.white, context),
                 Image.asset("Assets/Or.png"),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(

@@ -67,7 +67,7 @@ class _LoginState extends State<Login> {
                 ),
               ),
             ),
-            thirdPartyConnect(black),
+            thirdPartyConnect(black, context),
             Image.asset("Assets/OrDark.png"),
             Form(
                 key: formkey,

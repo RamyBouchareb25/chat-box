@@ -1,3 +1,4 @@
+import 'package:chat_app/models/google_sign_in.dart';
 import 'package:flutter/material.dart';
 
 const Color primaryColor = Color(0xFF24786D);
@@ -22,7 +23,7 @@ AppBar appBar(BuildContext context) {
   );
 }
 
-Widget thirdPartyConnect(Color stroke) {
+Widget thirdPartyConnect(Color stroke, BuildContext context) {
   return Padding(
       padding: const EdgeInsets.only(left: 40, right: 40),
       child: Row(
@@ -42,7 +43,9 @@ Widget thirdPartyConnect(Color stroke) {
             elevation: 0,
             heroTag: "Google",
             backgroundColor: Colors.transparent,
-            onPressed: () {},
+            onPressed: () {
+              AuthGoogle().signInWithGoogle();
+            },
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(100),
                 side: BorderSide(color: stroke)),

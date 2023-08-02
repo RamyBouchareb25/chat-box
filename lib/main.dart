@@ -6,7 +6,7 @@ import 'package:chat_app/widget_tree.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+   await Firebase.initializeApp();
   runApp(const MyApp());
 }
 
