@@ -1,6 +1,6 @@
-import 'package:chat_app/Pages/home_page.dart';
 import 'package:chat_app/models/form_field.dart';
 import 'package:chat_app/models/global.dart';
+import 'package:chat_app/widget_tree.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -27,6 +27,7 @@ class _SignUpState extends State<SignUp> {
       await Auth().createUserWithEmailAndPassword(
         email: controllerEMail.text,
         password: controllerPassword.text,
+        name: controllerName.text,
       );
     } on FirebaseAuthException catch (e) {
       setState(() {
@@ -43,6 +44,7 @@ class _SignUpState extends State<SignUp> {
 
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   bool _isFormValid = false;
+  final bool _isLoading = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -134,14 +136,19 @@ class _SignUpState extends State<SignUp> {
                     borderRadius: BorderRadius.circular(15))),
             onPressed: () {
               if (formKey.currentState!.validate()) {
-                createUserWithEmailAndPassword();
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => Home(), fullscreenDialog: true));
+                createUserWithEmailAndPassword().then((value) {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const WidgetTree()));
+                });
               }
             },
-            child: const Text("Create Account"),
+            child: _isLoading
+                ? const CircularProgressIndicator(
+                    color: Colors.white,
+                  )
+                : const Text("Create Account"),
           ),
         ],
       ),

@@ -13,9 +13,11 @@ class Auth {
   Future<void> createUserWithEmailAndPassword({
     required String email,
     required String password,
+    required String name,
   }) async {
     await _auth.createUserWithEmailAndPassword(
         email: email, password: password);
+    await _auth.currentUser!.updateDisplayName(name);
   }
 
   Future<void> signOut() async {

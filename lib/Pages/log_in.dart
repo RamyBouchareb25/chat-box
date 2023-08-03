@@ -1,6 +1,6 @@
-import 'package:chat_app/Pages/home_page.dart';
 import 'package:chat_app/models/form_field.dart';
 import 'package:chat_app/models/global.dart';
+import 'package:chat_app/widget_tree.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -30,6 +30,7 @@ class _LoginState extends State<Login> {
   final TextEditingController controllerEMail = TextEditingController();
   final TextEditingController controllerPassword = TextEditingController();
   bool _isFormValid = false;
+  bool _isLoading = false;
   void _validateForm() {
     if (formkey.currentState!.validate()) {
       setState(() {
@@ -116,25 +117,26 @@ class _LoginState extends State<Login> {
                         borderRadius: BorderRadius.circular(15))),
                 onPressed: () {
                   if (formkey.currentState!.validate()) {
-                    signInWithEmailAndPassword().then((value) => {
-                          if (errorMessage == null)
-                            {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => Home(),
-                                      fullscreenDialog: true))
-                            }
-                        });
+                    setState(() {
+                      _isLoading = true;
+                    });
+                    signInWithEmailAndPassword().then((value) {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const WidgetTree()));
+                    });
                   }
                 },
-                child: const Text("Log In"),
+                child: _isLoading
+                    ? const CircularProgressIndicator(
+                        color: Colors.white,
+                      )
+                    : const Text("Log In"),
               ),
             ),
             TextButton(
-                onPressed: () {
-                  signInWithEmailAndPassword();
-                },
+                onPressed: () {},
                 child: const Text("Forgot Password?",
                     style: TextStyle(color: primaryColor, fontSize: 15))),
           ],

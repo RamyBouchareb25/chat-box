@@ -6,6 +6,7 @@ class Home extends StatelessWidget {
   Home({super.key});
 
   final User? user = Auth().currentUser;
+
   Future<void> _signOut() async {
     await Auth().signOut();
   }
@@ -13,11 +14,14 @@ class Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text("Home Page"),
+      ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Center(
-            child: Text("Welcome ${user?.displayName}"),
+            child: Text("Welcome ${user?.displayName ?? "Anonymous"}"),
           ),
           ElevatedButton(
             onPressed: _signOut,

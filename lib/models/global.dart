@@ -1,4 +1,5 @@
 import 'package:chat_app/models/google_sign_in.dart';
+import 'package:chat_app/widget_tree.dart';
 import 'package:flutter/material.dart';
 
 const Color primaryColor = Color(0xFF24786D);
@@ -44,7 +45,12 @@ Widget thirdPartyConnect(Color stroke, BuildContext context) {
             heroTag: "Google",
             backgroundColor: Colors.transparent,
             onPressed: () {
-              AuthGoogle().signInWithGoogle();
+              AuthGoogle().signInWithGoogle().then((value) => {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const WidgetTree()))
+                  });
             },
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(100),
