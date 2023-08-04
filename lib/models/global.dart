@@ -2,7 +2,9 @@ import 'package:chat_app/models/google_sign_in.dart';
 import 'package:chat_app/widget_tree.dart';
 import 'package:flutter/material.dart';
 
-const Color primaryColor = Color(0xFF24786D);
+
+
+const Color primaryColor = Color.fromRGBO(36, 120, 109, 1);
 const Color black = Color.fromRGBO(12, 19, 16, 1);
 const Color grey = Color.fromARGB(255, 121, 124, 123);
 const Color dark = Color.fromARGB(252, 18, 20, 20);
