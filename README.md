@@ -1,6 +1,6 @@
 # ChatBox - Flutter and Firebase Chat App
 
-![ChatBox Banner](images/chatbox_banner.png)
+![ChatBox Banner](Assets/Thumb.png)
 
 ChatBox is a real-time chat application built using Flutter and Firebase that allows users to communicate with each other in a seamless and interactive manner. This app provides a user-friendly interface and supports instant messaging between multiple users.
 
