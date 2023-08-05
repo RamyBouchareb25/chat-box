@@ -14,8 +14,8 @@ ChatBox is a real-time chat application built using Flutter and Firebase that al
 
 ## Screenshots
 
-![Login Screen](Assets/LogInScreen.png) ![Chat Room Screen](Assets/ChatRoomScreen.png)
 
+<img src="Assets/LogInScreen.png" width="200" height="500">
 ## Installation
 
 1. Clone the repository to your local machine using the following command:
