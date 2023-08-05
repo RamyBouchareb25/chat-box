@@ -18,6 +18,7 @@ class Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        resizeToAvoidBottomInset: true,
         backgroundColor: black,
         appBar: DefaultAppBar(
           title: "Home",
@@ -107,7 +108,9 @@ class Home extends StatelessWidget {
                               onTap: () {
                                 Navigator.push(context, MaterialPageRoute(
                                     builder: (BuildContext context) {
-                                  return const Conversation();
+                                  return const Conversation(
+                                    roomId: "LzlmxIZwsO8t81npS1qs",
+                                  );
                                 }));
                               },
                               leading: const CircleAvatar(

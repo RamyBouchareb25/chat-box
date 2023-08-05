@@ -48,7 +48,7 @@ class _SignUpState extends State<SignUp> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: false,
+    resizeToAvoidBottomInset: false,
       appBar: appBar(context),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
