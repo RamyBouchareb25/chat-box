@@ -71,9 +71,9 @@ We welcome contributions to improve ChatBox. To contribute, follow these steps:
 
 If you encounter any bugs or have suggestions for improvements, please [open an issue](https://github.com/your-username/chatbox/issues) on GitHub.
 
-[comment]: <> (## License)
+## License
 
-[comment]: <> (This project is licensed under the [MIT License](LICENSE).)
+This project is licensed under the [MIT License](LICENSE).
 
 ---
 
