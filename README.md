@@ -14,8 +14,7 @@ ChatBox is a real-time chat application built using Flutter and Firebase that al
 
 ## Screenshots
 
-![Login Screen](Assets/LogInScreen.png)
-![Chat Room Screen](Assets/ChatRoomScreen.png)
+![Login Screen](Assets/LogInScreen.png) ![Chat Room Screen](Assets/ChatRoomScreen.png)
 
 ## Installation
 
