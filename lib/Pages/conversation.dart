@@ -1,12 +1,14 @@
 import 'package:chat_app/Classes/message.dart';
+import 'package:chat_app/auth.dart';
 import 'package:chat_app/models/icomoon_icons.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:chat_app/models/global.dart';
 
 class Conversation extends StatefulWidget {
-  const Conversation({super.key, required this.roomId});
+  const Conversation({super.key, required this.roomId, required this.UserName});
   final String roomId;
+  final String UserName;
 
   @override
   State<Conversation> createState() => _ConversationState();
@@ -57,12 +59,12 @@ class _ConversationState extends State<Conversation> {
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
+                children: [
                   Text(
-                    "Name LastName",
-                    style: TextStyle(color: black),
+                    widget.UserName,
+                    style: const TextStyle(color: black),
                   ),
-                  Text(
+                  const Text(
                     "Active Now",
                     style: TextStyle(color: grey, fontSize: 12),
                   ),
@@ -94,6 +96,7 @@ class _ConversationState extends State<Conversation> {
                 .collection("Rooms")
                 .doc(widget.roomId)
                 .collection("messages")
+                .orderBy("timestamp", descending: true)
                 .snapshots(),
             builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
               if (snapshot.hasData) {
@@ -105,9 +108,12 @@ class _ConversationState extends State<Conversation> {
                       itemBuilder: (context, index) {
                         var msgData = snapshot.data!.docs[index].data()!
                             as Map<String, dynamic>;
-                        return Center(
-                          child: Text(
-                              msgData['message'] ?? "error fetching message"),
+                        return Text(
+                          msgData['message'] ?? "error fetching message",
+                          textAlign:
+                              msgData['senderId'] == Auth().currentUser!.uid
+                                  ? TextAlign.right
+                                  : TextAlign.left,
                         );
                       });
                 } else if (snapshot.hasError) {
@@ -191,7 +197,7 @@ class _ConversationState extends State<Conversation> {
                               id: widget.roomId,
                               message: messageController.text,
                               receiverId: "",
-                              senderId: "",
+                              senderId: Auth().currentUser!.uid,
                               timestamp: DateTime.now().toString(),
                               type: "Text",
                             ).toMap());

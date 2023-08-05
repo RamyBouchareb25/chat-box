@@ -2,19 +2,22 @@ import 'package:chat_app/Pages/conversation.dart';
 import 'package:chat_app/components/appbar.dart';
 import 'package:chat_app/models/global.dart';
 import 'package:chat_app/models/icomoon_icons.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:chat_app/auth.dart';
 
-class Home extends StatelessWidget {
-  Home({super.key});
+class Home extends StatefulWidget {
+  const Home({super.key});
 
+  @override
+  State<Home> createState() => _HomeState();
+}
+
+class _HomeState extends State<Home> {
   final User? user = Auth().currentUser;
-
-  Future<void> _signOut() async {
-    await Auth().signOut();
-  }
-
+  final firestore = FirebaseFirestore.instance;
+  List<String> Users = [];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -29,43 +32,65 @@ class Home extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Container(
-                height: 150,
-                decoration: const BoxDecoration(
-                  color: black, // Change the color as desired
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: 10,
-                        scrollDirection: Axis.horizontal,
-                        itemBuilder: (context, index) {
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 25),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Expanded(
-                                  child: CircleAvatar(
-                                    radius: 30,
-                                    backgroundColor: Colors.white,
-                                  ),
-                                ),
-                                Text(
-                                  index == 0 ? "My Status" : "User",
-                                  style: const TextStyle(color: Colors.white),
-                                ),
-                              ],
+              StreamBuilder(
+                  stream: firestore
+                      .collection("Rooms")
+                      .where("users", arrayContains: user!.uid)
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      return Container(
+                        height: 150,
+                        decoration: const BoxDecoration(
+                          color: black, // Change the color as desired
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: ListView.builder(
+                                itemCount: snapshot.data!.size + 1,
+                                scrollDirection: Axis.horizontal,
+                                itemBuilder: (context, index) {
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 25),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        const Expanded(
+                                          child: CircleAvatar(
+                                            radius: 30,
+                                            backgroundColor: Colors.white,
+                                          ),
+                                        ),
+                                        Text(
+                                          index == 0 ? "My Status" : "User",
+                                          style: const TextStyle(
+                                              color: Colors.white),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+                          ],
+                        ),
+                      );
+                    } else if (snapshot.hasError) {
+                      return const Center(
+                        child: Text("Something went wrong"),
+                      );
+                    } else {
+                      return const Center(
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          backgroundColor: black,
+                        ),
+                      );
+                    }
+                  }),
               Container(
                 height: 50.0, // Adjust the height as needed
                 decoration: const BoxDecoration(
@@ -92,74 +117,128 @@ class Home extends StatelessWidget {
                 ),
               ),
               Expanded(
-                child: CustomScrollView(
-                  slivers: [
-                    SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                      childCount: 10,
-                      (context, index) => Container(
-                        color: Colors
-                            .white, // Change the color of the body as desired
-                        // Your body content here
-                        // Example:
-                        child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 16.0),
-                            child: ListTile(
-                              onTap: () {
-                                Navigator.push(context, MaterialPageRoute(
-                                    builder: (BuildContext context) {
-                                  return const Conversation(
-                                    roomId: "LzlmxIZwsO8t81npS1qs",
-                                  );
-                                }));
-                              },
-                              leading: const CircleAvatar(
-                                radius: 30,
-                                backgroundColor: Colors.black,
-                              ),
-                              title: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: const [
-                                  Text("Name",
-                                      style: TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold)),
-                                  Text("2 min ago",
-                                      style: TextStyle(
-                                          fontSize: 15, color: Colors.grey)),
-                                ],
-                              ),
-                              subtitle: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  const Text(
-                                    "Message",
-                                    style: TextStyle(
-                                        color: Colors.grey, fontSize: 15),
-                                  ),
-                                  Container(
-                                    width: 20,
-                                    height: 20,
-                                    decoration: BoxDecoration(
-                                        color: Colors.red,
-                                        borderRadius:
-                                            BorderRadius.circular(100)),
-                                    child: const Center(
-                                      child: Text(
-                                        "3",
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )),
-                      ),
-                    ))
-                  ],
-                ),
+                child: StreamBuilder(
+                    stream: firestore
+                        .collection("Rooms")
+                        .where("users", arrayContains: user!.uid)
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData) {
+                        if (snapshot.data!.docs.isNotEmpty) {
+                          return CustomScrollView(
+                            slivers: [
+                              SliverList(
+                                  delegate: SliverChildBuilderDelegate(
+                                      childCount: snapshot.data!.size,
+                                      (context, index) {
+                                firestore
+                                    .collection("Users")
+                                    .get()
+                                    .then((value) {
+                                  for (var element in value.docs) {
+                                    if ((element.data()["UserId"] ==
+                                                snapshot.data!.docs[index]
+                                                    .data()["users"][0] ||
+                                            element.data()["UserId"] ==
+                                                snapshot.data!.docs[index]
+                                                    .data()["users"][1]) &&
+                                        element.data()["UserId"] != user!.uid) {
+                                      setState(() {
+                                        Users.add(element.data()["Name"]);
+                                      });
+                                    }
+                                  }
+                                });
+                                return Container(
+                                  color: Colors.white,
+                                  child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 16.0),
+                                      child: ListTile(
+                                        onTap: () {
+                                          Navigator.push(context,
+                                              MaterialPageRoute(builder:
+                                                  (BuildContext context) {
+                                            return Conversation(
+                                              UserName: Users[index],
+                                              roomId:
+                                                  snapshot.data!.docs[index].id,
+                                            );
+                                          }));
+                                        },
+                                        leading: const CircleAvatar(
+                                          radius: 30,
+                                          backgroundColor: Colors.black,
+                                        ),
+                                        title: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                                Users.length > index
+                                                    ? Users[index]
+                                                    : "User",
+                                                style: const TextStyle(
+                                                    fontSize: 20,
+                                                    fontWeight:
+                                                        FontWeight.bold)),
+                                            const Text("2 min ago",
+                                                style: TextStyle(
+                                                    fontSize: 15,
+                                                    color: Colors.grey)),
+                                          ],
+                                        ),
+                                        subtitle: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            const Text(
+                                              "Message",
+                                              style: TextStyle(
+                                                  color: Colors.grey,
+                                                  fontSize: 15),
+                                            ),
+                                            Container(
+                                              width: 20,
+                                              height: 20,
+                                              decoration: BoxDecoration(
+                                                  color: Colors.red,
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          100)),
+                                              child: const Center(
+                                                child: Text(
+                                                  "3",
+                                                  style: TextStyle(
+                                                      color: Colors.white),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      )),
+                                );
+                              }))
+                            ],
+                          );
+                        } else {
+                          return const Center(
+                              child:
+                                  Text("You have No conversations for now X)"));
+                        }
+                      } else if (snapshot.hasError) {
+                        return const Center(
+                          child: Text("An Error Occured X("),
+                        );
+                      } else {
+                        return const Center(
+                          child: CircularProgressIndicator(
+                            color: primaryColor,
+                            backgroundColor: Colors.white,
+                          ),
+                        );
+                      }
+                    }),
               ),
             ],
           ),
