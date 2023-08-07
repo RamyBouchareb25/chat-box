@@ -20,6 +20,7 @@ class MyApp extends StatelessWidget {
         themeMode: ThemeMode.light,
         title: 'Chat Box',
         theme: ThemeData(
+          fontFamily: "circular",
           appBarTheme: const AppBarTheme(
             backgroundColor: black,
             elevation: 0,

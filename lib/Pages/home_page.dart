@@ -218,7 +218,12 @@ class _HomeState extends State<Home> {
                                         ),
                                       )),
                                 );
-                              }))
+                              })),
+                              SliverFillRemaining(
+                                  hasScrollBody: false,
+                                  child: Container(
+                                    color: Colors.white,
+                                  ))
                             ],
                           );
                         } else {

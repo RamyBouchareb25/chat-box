@@ -4,6 +4,7 @@ import 'package:chat_app/models/icomoon_icons.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:chat_app/models/global.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 class Conversation extends StatefulWidget {
   const Conversation({super.key, required this.roomId, required this.UserName});
@@ -18,6 +19,7 @@ class _ConversationState extends State<Conversation> {
   FirebaseFirestore firestore = FirebaseFirestore.instance;
   final FocusNode _textFieldFocus = FocusNode();
   double _bottomAppBarOffset = 0.0;
+  double _bodyOffset = 0.0;
   final TextEditingController messageController = TextEditingController();
   bool isWriting = false;
   @override
@@ -29,13 +31,14 @@ class _ConversationState extends State<Conversation> {
   void _onTextFieldFocusChange() {
     setState(() {
       _bottomAppBarOffset = _textFieldFocus.hasFocus ? 50.0 : 0.0;
+      _bodyOffset = _textFieldFocus.hasFocus ? 50.0 : 0.0;
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        resizeToAvoidBottomInset: false,
+        resizeToAvoidBottomInset: true,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           centerTitle: false,
@@ -91,41 +94,134 @@ class _ConversationState extends State<Conversation> {
             ),
           ],
         ),
-        body: StreamBuilder(
-            stream: firestore
-                .collection("Rooms")
-                .doc(widget.roomId)
-                .collection("messages")
-                .orderBy("timestamp", descending: true)
-                .snapshots(),
-            builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-              if (snapshot.hasData) {
-                if (snapshot.data!.docs.isNotEmpty) {
-                  return ListView.builder(
-                      shrinkWrap: true,
-                      reverse: true,
-                      itemCount: snapshot.data!.docs.length,
-                      itemBuilder: (context, index) {
-                        var msgData = snapshot.data!.docs[index].data()!
-                            as Map<String, dynamic>;
-                        return Text(
-                          msgData['message'] ?? "error fetching message",
-                          textAlign:
-                              msgData['senderId'] == Auth().currentUser!.uid
-                                  ? TextAlign.right
-                                  : TextAlign.left,
-                        );
-                      });
-                } else if (snapshot.hasError) {
-                  return const Center(
-                    child: Text("Something went wrong"),
-                  );
+        body: AnimatedContainer(
+          duration: const Duration(milliseconds: 0),
+          transform: Matrix4.translationValues(0.0, -_bodyOffset, 0.0),
+          child: StreamBuilder(
+              stream: firestore
+                  .collection("Rooms")
+                  .doc(widget.roomId)
+                  .collection("messages")
+                  .orderBy("timestamp", descending: true)
+                  .snapshots(),
+              builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (snapshot.hasData) {
+                  if (snapshot.data!.docs.isNotEmpty) {
+                    return ListView.builder(
+                        shrinkWrap: true,
+                        reverse: true,
+                        itemCount: snapshot.data!.docs.length,
+                        itemBuilder: (context, index) {
+                          MessageData data = MessageData.fromMap(
+                              snapshot.data!.docs[index].data()!
+                                  as Map<String, dynamic>);
+                          MessageData? previousData = index > 0
+                              ? MessageData.fromMap(
+                                  snapshot.data!.docs[index - 1].data()!
+                                      as Map<String, dynamic>)
+                              : null;
+                          MessageData? nextData =
+                              index < snapshot.data!.docs.length - 1
+                                  ? MessageData.fromMap(
+                                      snapshot.data!.docs[index + 1].data()!
+                                          as Map<String, dynamic>)
+                                  : null;
+
+                          return Padding(
+                            padding: EdgeInsets.only(
+                              bottom: previousData != null
+                                  ? previousData.senderId != data.senderId
+                                      ? 30
+                                      : 5
+                                  : 40,
+                              left: data.senderId == Auth().currentUser!.uid
+                                  ? 0
+                                  : 15,
+                              right: data.senderId == Auth().currentUser!.uid
+                                  ? 15
+                                  : 0,
+                            ),
+                            child: Align(
+                              alignment:
+                                  data.senderId == Auth().currentUser!.uid
+                                      ? Alignment.centerRight
+                                      : Alignment.centerLeft,
+                              child: Column(
+                                children: [
+                                  Align(
+                                    alignment:
+                                        data.senderId == Auth().currentUser!.uid
+                                            ? Alignment.centerRight
+                                            : Alignment.centerLeft,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 20, vertical: 15),
+                                      decoration: BoxDecoration(
+                                          color: data.senderId ==
+                                                  Auth().currentUser!.uid
+                                              ? primaryColor
+                                              : grey2,
+                                          borderRadius: BorderRadius.only(
+                                            topLeft: Radius.circular(
+                                                data.senderId ==
+                                                        Auth().currentUser!.uid
+                                                    ? 20
+                                                    : 0),
+                                            topRight: Radius.circular(
+                                                data.senderId ==
+                                                        Auth().currentUser!.uid
+                                                    ? 0
+                                                    : 20),
+                                            bottomLeft:
+                                                const Radius.circular(20),
+                                            bottomRight:
+                                                const Radius.circular(20),
+                                          )),
+                                      child: Text(
+                                        data.message ??
+                                            "error fetching message",
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: data.senderId ==
+                                                  Auth().currentUser!.uid
+                                              ? Colors.white
+                                              : black,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  if ((previousData != null &&
+                                          previousData.senderId !=
+                                              data.senderId) ||
+                                      index == 0)
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                          top: 10, left: 10),
+                                      child: Text(
+                                        timeago.format(
+                                            DateTime.parse(data.timestamp!)),
+                                        style: const TextStyle(
+                                          color: grey,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          );
+                        });
+                  } else if (snapshot.hasError) {
+                    return const Center(
+                      child: Text("Something went wrong"),
+                    );
+                  }
                 }
-              }
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
-            }),
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              }),
+        ),
         bottomNavigationBar: AnimatedContainer(
           duration: const Duration(milliseconds: 0),
           transform: Matrix4.translationValues(

@@ -2,14 +2,12 @@ import 'package:chat_app/models/google_sign_in.dart';
 import 'package:chat_app/widget_tree.dart';
 import 'package:flutter/material.dart';
 
-
-
 const Color primaryColor = Color.fromRGBO(36, 120, 109, 1);
 const Color black = Color.fromRGBO(12, 19, 16, 1);
 const Color grey = Color.fromARGB(255, 121, 124, 123);
 const Color dark = Color.fromARGB(252, 18, 20, 20);
 const Color light = Color.fromARGB(255, 242, 247, 251);
-
+const Color grey2 = Color(0xFFF2F7FB);
 AppBar appBar(BuildContext context) {
   return AppBar(
     leading: IconButton(

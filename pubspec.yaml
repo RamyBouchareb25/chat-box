@@ -45,6 +45,7 @@ dependencies:
   get: ^4.6.5
   flutter_launcher_icons: ^0.13.1
   flutter_icons: ^1.1.0
+  timeago: ^3.5.0
 
 dev_dependencies:
   flutter_test:
@@ -92,6 +93,10 @@ flutter:
     - family: icomoon
       fonts:
         - asset: fonts/icomoon.ttf
+    - family: circular
+      fonts:
+        - asset: fonts/circular-std-medium-500.ttf
+    
   #       - asset: fonts/Schyler-Italic.ttf
   #         style: italic
   #   - family: Trajan Pro
