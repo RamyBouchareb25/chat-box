@@ -1,11 +1,14 @@
+import 'package:chat_app/Classes/message.dart';
 import 'package:chat_app/Pages/conversation.dart';
+import 'package:chat_app/Pages/settings.dart';
 import 'package:chat_app/components/appbar.dart';
 import 'package:chat_app/models/global.dart';
-import 'package:chat_app/models/icomoon_icons.dart';
+import 'package:chat_app/models/user_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:chat_app/auth.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -17,7 +20,8 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   final User? user = Auth().currentUser;
   final firestore = FirebaseFirestore.instance;
-  List<String> Users = [];
+  final int _selectedPage = 0;
+  List<UserModel> users = [];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -85,8 +89,8 @@ class _HomeState extends State<Home> {
                     } else {
                       return const Center(
                         child: CircularProgressIndicator(
-                          color: Colors.white,
-                          backgroundColor: black,
+                          color: black,
+                          backgroundColor: Colors.white,
                         ),
                       );
                     }
@@ -144,80 +148,145 @@ class _HomeState extends State<Home> {
                                                     .data()["users"][1]) &&
                                         element.data()["UserId"] != user!.uid) {
                                       setState(() {
-                                        Users.add(element.data()["Name"]);
+                                        UserModel user =
+                                            UserModel.fromMap(element.data());
+                                        users.add(user);
                                       });
                                     }
                                   }
                                 });
-                                return Container(
-                                  color: Colors.white,
-                                  child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 16.0),
-                                      child: ListTile(
-                                        onTap: () {
-                                          Navigator.push(context,
-                                              MaterialPageRoute(builder:
-                                                  (BuildContext context) {
-                                            return Conversation(
-                                              UserName: Users[index],
-                                              roomId:
-                                                  snapshot.data!.docs[index].id,
-                                            );
-                                          }));
-                                        },
-                                        leading: const CircleAvatar(
-                                          radius: 30,
-                                          backgroundColor: Colors.black,
-                                        ),
-                                        title: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Text(
-                                                Users.length > index
-                                                    ? Users[index]
-                                                    : "User",
-                                                style: const TextStyle(
-                                                    fontSize: 20,
-                                                    fontWeight:
-                                                        FontWeight.bold)),
-                                            const Text("2 min ago",
-                                                style: TextStyle(
-                                                    fontSize: 15,
-                                                    color: Colors.grey)),
-                                          ],
-                                        ),
-                                        subtitle: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            const Text(
-                                              "Message",
-                                              style: TextStyle(
-                                                  color: Colors.grey,
-                                                  fontSize: 15),
-                                            ),
-                                            Container(
-                                              width: 20,
-                                              height: 20,
-                                              decoration: BoxDecoration(
-                                                  color: Colors.red,
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          100)),
-                                              child: const Center(
-                                                child: Text(
-                                                  "3",
-                                                  style: TextStyle(
-                                                      color: Colors.white),
+                                return StreamBuilder(
+                                    stream: firestore
+                                        .collection("Rooms")
+                                        .doc(snapshot.data!.docs[index].id)
+                                        .collection("messages")
+                                        .orderBy("timestamp")
+                                        .snapshots(),
+                                    builder: (context, snap) {
+                                      if (snap.hasData) {
+                                        MessageData lastMessage =
+                                            MessageData.fromMap(snap
+                                                .data!.docs[snap.data!.size - 1]
+                                                .data());
+                                        List<MessageData> lastMessages = [];
+                                        for (var element in snap.data!.docs) {
+                                          if (element.data()["isRead"] ==
+                                              false) {
+                                            var msg = MessageData.fromMap(
+                                                element.data());
+                                            msg.id = element.id;
+                                            lastMessages.add(msg);
+                                          }
+                                        }
+                                        return Container(
+                                          color: Colors.white,
+                                          child: Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      vertical: 16.0),
+                                              child: ListTile(
+                                                onTap: () {
+                                                  if (users.length > index) {
+                                                    Navigator.push(context,
+                                                        MaterialPageRoute(
+                                                            builder:
+                                                                (BuildContext
+                                                                    context) {
+                                                      return Conversation(
+                                                        lastMessages:
+                                                            lastMessages.isEmpty
+                                                                ? <MessageData>[]
+                                                                : lastMessages,
+                                                        user: users[index],
+                                                        roomId: snapshot.data!
+                                                            .docs[index].id,
+                                                      );
+                                                    }));
+                                                  }
+                                                },
+                                                leading: const CircleAvatar(
+                                                  radius: 30,
+                                                  backgroundColor: Colors.black,
                                                 ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      )),
-                                );
+                                                title: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: [
+                                                    Text(
+                                                        users.length > index
+                                                            ? users[index].name!
+                                                            : "User",
+                                                        style: const TextStyle(
+                                                            fontSize: 20,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .bold)),
+                                                    Text(
+                                                        timeago.format(DateTime
+                                                            .parse(lastMessage
+                                                                .timestamp!)),
+                                                        style: const TextStyle(
+                                                            fontSize: 15,
+                                                            color:
+                                                                Colors.grey)),
+                                                  ],
+                                                ),
+                                                subtitle: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: [
+                                                    Text(
+                                                      lastMessage.senderId ==
+                                                              user!.uid
+                                                          ? "You: ${lastMessage.message!}"
+                                                          : lastMessage
+                                                                  .message ??
+                                                              "No Messages Yet",
+                                                      style: TextStyle(
+                                                          color: lastMessage
+                                                                  .isRead!
+                                                              ? Colors.grey
+                                                              : black,
+                                                          fontSize: 15),
+                                                    ),
+                                                    lastMessages.isNotEmpty
+                                                        ? Container(
+                                                            width: 20,
+                                                            height: 20,
+                                                            decoration: BoxDecoration(
+                                                                color:
+                                                                    Colors.red,
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            100)),
+                                                            child: Center(
+                                                              child: Text(
+                                                                lastMessages
+                                                                    .length
+                                                                    .toString(),
+                                                                style: const TextStyle(
+                                                                    color: Colors
+                                                                        .white),
+                                                              ),
+                                                            ),
+                                                          )
+                                                        : const SizedBox(),
+                                                  ],
+                                                ),
+                                              )),
+                                        );
+                                      } else {
+                                        return const Center(
+                                          child: CircularProgressIndicator(
+                                            color: primaryColor,
+                                            backgroundColor: Colors.white,
+                                          ),
+                                        );
+                                      }
+                                    });
                               })),
                               SliverFillRemaining(
                                   hasScrollBody: false,
@@ -248,30 +317,6 @@ class _HomeState extends State<Home> {
             ],
           ),
         ),
-        bottomNavigationBar: BottomNavigationBar(
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.white,
-          selectedItemColor: primaryColor,
-          unselectedItemColor: Colors.grey,
-          iconSize: 20,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icomoon.Chats3),
-              label: "Chats",
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icomoon.Calls),
-              label: "Calls",
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icomoon.User),
-              label: "People",
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icomoon.Settings),
-              label: "Settings",
-            ),
-          ],
-        ));
+        bottomNavigationBar: bottomNavBar(context: context, selectedPage: 0));
   }
 }

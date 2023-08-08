@@ -1,6 +1,9 @@
+import 'package:chat_app/Pages/home_page.dart';
+import 'package:chat_app/Pages/settings.dart';
 import 'package:chat_app/models/google_sign_in.dart';
 import 'package:chat_app/widget_tree.dart';
 import 'package:flutter/material.dart';
+import 'package:chat_app/models/icomoon_icons.dart';
 
 const Color primaryColor = Color.fromRGBO(36, 120, 109, 1);
 const Color black = Color.fromRGBO(12, 19, 16, 1);
@@ -21,6 +24,58 @@ AppBar appBar(BuildContext context) {
     ),
     backgroundColor: Colors.transparent,
     elevation: 0,
+  );
+}
+
+Widget bottomNavBar({selectedPage, required BuildContext context}) {
+  return BottomNavigationBar(
+    type: BottomNavigationBarType.fixed,
+    backgroundColor: Colors.white,
+    selectedItemColor: primaryColor,
+    unselectedItemColor: Colors.grey,
+    iconSize: 20,
+    items: const [
+      BottomNavigationBarItem(
+        icon: Icon(Icomoon.Chats3),
+        label: "Chats",
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icomoon.Calls),
+        label: "Calls",
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icomoon.User),
+        label: "People",
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icomoon.Settings),
+        label: "Settings",
+      ),
+    ],
+    currentIndex: selectedPage,
+    onTap: (value) {
+      switch (value) {
+                case 0:
+                  Navigator.pushReplacement(context,
+                      MaterialPageRoute(builder: (context) => const Home()));
+                  break;
+                case 1:
+                  Navigator.pushReplacement(context,
+                      MaterialPageRoute(builder: (context) => const Home()));
+                  break;
+                case 2:
+                  Navigator.pushReplacement(context,
+                      MaterialPageRoute(builder: (context) => const Home()));
+                  break;
+                case 3:
+                  Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const SettingsPage()));
+                  break;
+                default:
+              }
+    },
   );
 }
 

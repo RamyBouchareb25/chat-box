@@ -121,10 +121,21 @@ class _LoginState extends State<Login> {
                       _isLoading = true;
                     });
                     signInWithEmailAndPassword().then((value) {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const WidgetTree()));
+                      if (errorMessage == null) {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const WidgetTree()));
+                      } else {
+                        print(errorMessage);
+                        setState(() {
+                          _isLoading = false;
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content:
+                                    Text("Log In Failed !, Please Try Again")));
+                      }
                     });
                   }
                 },

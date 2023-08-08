@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
           appBarTheme: const AppBarTheme(
             backgroundColor: black,
             elevation: 0,
-            centerTitle: true,
+            centerTitle: true, 
           ),
           primarySwatch: Colors.blue,
         ),

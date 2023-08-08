@@ -1,10 +1,11 @@
 class MessageData {
-  final String? id;
+  String? id;
   final String? message;
   final String? senderId;
   final String? receiverId;
   final String? timestamp;
   final String? type;
+  final bool? isRead;
 
   MessageData({
     this.id,
@@ -13,8 +14,8 @@ class MessageData {
     this.receiverId,
     this.timestamp,
     this.type,
+    this.isRead,
   });
-
   factory MessageData.fromMap(Map<String, dynamic> data) {
     return MessageData(
       id: data['id'],
@@ -23,6 +24,7 @@ class MessageData {
       receiverId: data['receiverId'],
       timestamp: data['timestamp'],
       type: data['type'],
+      isRead: data['isRead'],
     );
   }
 
@@ -34,6 +36,7 @@ class MessageData {
       'receiverId': receiverId,
       'timestamp': timestamp,
       'type': type,
+      'isRead': isRead,
     };
   }
 }

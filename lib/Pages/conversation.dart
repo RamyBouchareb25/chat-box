@@ -1,15 +1,21 @@
 import 'package:chat_app/Classes/message.dart';
 import 'package:chat_app/auth.dart';
 import 'package:chat_app/models/icomoon_icons.dart';
+import 'package:chat_app/models/user_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:chat_app/models/global.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class Conversation extends StatefulWidget {
-  const Conversation({super.key, required this.roomId, required this.UserName});
+  const Conversation(
+      {super.key,
+      required this.roomId,
+      required this.user,
+      required this.lastMessages});
   final String roomId;
-  final String UserName;
+  final UserModel user;
+  final List<MessageData> lastMessages;
 
   @override
   State<Conversation> createState() => _ConversationState();
@@ -26,6 +32,18 @@ class _ConversationState extends State<Conversation> {
   void initState() {
     super.initState();
     _textFieldFocus.addListener(_onTextFieldFocusChange);
+    if (widget.lastMessages.isNotEmpty) {
+      for (var element in widget.lastMessages) {
+        if (element.senderId != Auth().currentUser!.uid) {
+          firestore
+              .collection("Rooms")
+              .doc(widget.roomId)
+              .collection("messages")
+              .doc(element.id)
+              .update({"isRead": true});
+        }
+      }
+    }
   }
 
   void _onTextFieldFocusChange() {
@@ -51,30 +69,65 @@ class _ConversationState extends State<Conversation> {
               Navigator.pop(context);
             },
           ),
-          title: Row(
-            children: [
-              const CircleAvatar(
-                radius: 20,
-                backgroundColor: black,
-              ),
-              const SizedBox(
-                width: 10,
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.UserName,
-                    style: const TextStyle(color: black),
-                  ),
-                  const Text(
-                    "Active Now",
-                    style: TextStyle(color: grey, fontSize: 12),
-                  ),
-                ],
-              ),
-            ],
-          ),
+          title: StreamBuilder(
+              stream: firestore
+                  .collection("Users")
+                  .where("UserId", isEqualTo: widget.user.uid)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  UserModel interlocuter =
+                      UserModel.fromMap(snapshot.data!.docs[0].data());
+                  return Row(
+                    children: [
+                      Stack(
+                        children: [
+                          const CircleAvatar(
+                            radius: 20,
+                            backgroundColor: black,
+                          ),
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: Container(
+                              height: 15,
+                              width: 15,
+                              decoration: BoxDecoration(
+                                color: interlocuter.status == "online"
+                                    ? Colors.green
+                                    : Colors.grey,
+                                borderRadius: BorderRadius.circular(10),
+                                border:
+                                    Border.all(color: Colors.white, width: 2),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(
+                        width: 10,
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.user.name ?? "error fetching name",
+                            style: const TextStyle(color: black),
+                          ),
+                          Text(
+                            interlocuter.status ?? "error fetching status",
+                            style: const TextStyle(color: grey, fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ],
+                  );
+                } else {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+              }),
           actions: [
             IconButton(
               icon: const Icon(
@@ -110,7 +163,7 @@ class _ConversationState extends State<Conversation> {
                     return ListView.builder(
                         shrinkWrap: true,
                         reverse: true,
-                        itemCount: snapshot.data!.docs.length,
+                        itemCount: snapshot.data!.size,
                         itemBuilder: (context, index) {
                           MessageData data = MessageData.fromMap(
                               snapshot.data!.docs[index].data()!
@@ -120,12 +173,12 @@ class _ConversationState extends State<Conversation> {
                                   snapshot.data!.docs[index - 1].data()!
                                       as Map<String, dynamic>)
                               : null;
-                          MessageData? nextData =
-                              index < snapshot.data!.docs.length - 1
-                                  ? MessageData.fromMap(
-                                      snapshot.data!.docs[index + 1].data()!
-                                          as Map<String, dynamic>)
-                                  : null;
+                          // MessageData? nextData =
+                          //     index < snapshot.data!.docs.length - 1
+                          //         ? MessageData.fromMap(
+                          //             snapshot.data!.docs[index + 1].data()!
+                          //                 as Map<String, dynamic>)
+                          //         : null;
 
                           return Padding(
                             padding: EdgeInsets.only(
@@ -290,13 +343,14 @@ class _ConversationState extends State<Conversation> {
                             .doc(widget.roomId)
                             .collection("messages")
                             .add(MessageData(
-                              id: widget.roomId,
-                              message: messageController.text,
-                              receiverId: "",
-                              senderId: Auth().currentUser!.uid,
-                              timestamp: DateTime.now().toString(),
-                              type: "Text",
-                            ).toMap());
+                                    id: widget.roomId,
+                                    message: messageController.text,
+                                    receiverId: "",
+                                    senderId: Auth().currentUser!.uid,
+                                    timestamp: DateTime.now().toString(),
+                                    type: "Text",
+                                    isRead: false)
+                                .toMap());
                         messageController.clear();
                         setState(() {
                           isWriting = false;
