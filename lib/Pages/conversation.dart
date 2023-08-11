@@ -3,9 +3,12 @@ import 'package:chat_app/auth.dart';
 import 'package:chat_app/models/icomoon_icons.dart';
 import 'package:chat_app/models/user_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:chat_app/models/global.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import 'package:firebase_storage/firebase_storage.dart';
 
 class Conversation extends StatefulWidget {
   const Conversation(
@@ -16,22 +19,33 @@ class Conversation extends StatefulWidget {
   final String roomId;
   final UserModel user;
   final List<MessageData> lastMessages;
-
   @override
   State<Conversation> createState() => _ConversationState();
 }
 
 class _ConversationState extends State<Conversation> {
   FirebaseFirestore firestore = FirebaseFirestore.instance;
+  FirebaseFunctions functions = FirebaseFunctions.instance;
+  FirebaseStorage storage = FirebaseStorage.instance;
+
   final FocusNode _textFieldFocus = FocusNode();
   double _bottomAppBarOffset = 0.0;
   double _bodyOffset = 0.0;
   final TextEditingController messageController = TextEditingController();
   bool isWriting = false;
+  late String? url;
+  Future<HttpsCallableResult> sendMessage() async {
+    HttpsCallable sendNotif = functions.httpsCallable("sendNotification");
+    final resp = sendNotif.call();
+    return await resp;
+  }
+
   @override
-  void initState() {
+  void initState() async {
     super.initState();
+
     _textFieldFocus.addListener(_onTextFieldFocusChange);
+    url = await storage.ref().child("Github Profile.jpg").getDownloadURL();
     if (widget.lastMessages.isNotEmpty) {
       for (var element in widget.lastMessages) {
         if (element.senderId != Auth().currentUser!.uid) {
@@ -66,7 +80,9 @@ class _ConversationState extends State<Conversation> {
               color: black,
             ),
             onPressed: () {
-              Navigator.pop(context);
+              Navigator.pop(context, () {
+                setState(() {});
+              });
             },
           ),
           title: StreamBuilder(
@@ -82,9 +98,11 @@ class _ConversationState extends State<Conversation> {
                     children: [
                       Stack(
                         children: [
-                          const CircleAvatar(
+                          CircleAvatar(
                             radius: 20,
                             backgroundColor: black,
+                            backgroundImage:
+                                NetworkImage(interlocuter.profilePhoto ?? url!),
                           ),
                           Positioned(
                             bottom: 0,
@@ -336,8 +354,12 @@ class _ConversationState extends State<Conversation> {
                         size: !isWriting ? 20 : 15,
                       ),
                     ),
-                    onPressed: () {
+                    onPressed: () async {
                       if (isWriting) {
+                        var response = await sendMessage();
+                        if (kDebugMode) {
+                          print(response.data);
+                        }
                         firestore
                             .collection("Rooms")
                             .doc(widget.roomId)

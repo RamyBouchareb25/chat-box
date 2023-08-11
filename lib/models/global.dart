@@ -27,6 +27,7 @@ AppBar appBar(BuildContext context) {
   );
 }
 
+
 Widget bottomNavBar({selectedPage, required BuildContext context}) {
   return BottomNavigationBar(
     type: BottomNavigationBarType.fixed,
@@ -55,26 +56,24 @@ Widget bottomNavBar({selectedPage, required BuildContext context}) {
     currentIndex: selectedPage,
     onTap: (value) {
       switch (value) {
-                case 0:
-                  Navigator.pushReplacement(context,
-                      MaterialPageRoute(builder: (context) => const Home()));
-                  break;
-                case 1:
-                  Navigator.pushReplacement(context,
-                      MaterialPageRoute(builder: (context) => const Home()));
-                  break;
-                case 2:
-                  Navigator.pushReplacement(context,
-                      MaterialPageRoute(builder: (context) => const Home()));
-                  break;
-                case 3:
-                  Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const SettingsPage()));
-                  break;
-                default:
-              }
+        case 0:
+          Navigator.push(
+              context, MaterialPageRoute(builder: (context) => const Home()));
+          break;
+        case 1:
+          // Navigator.push(
+          //     context, MaterialPageRoute(builder: (context) => const Home()));
+          break;
+        case 2:
+          // Navigator.push(
+          //     context, MaterialPageRoute(builder: (context) => const Home()));
+          break;
+        case 3:
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => const SettingsPage()));
+          break;
+        default:
+      }
     },
   );
 }

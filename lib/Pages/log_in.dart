@@ -2,6 +2,7 @@ import 'package:chat_app/models/form_field.dart';
 import 'package:chat_app/models/global.dart';
 import 'package:chat_app/widget_tree.dart';
 import 'package:email_validator/email_validator.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:chat_app/auth.dart';
@@ -127,7 +128,9 @@ class _LoginState extends State<Login> {
                             MaterialPageRoute(
                                 builder: (context) => const WidgetTree()));
                       } else {
-                        print(errorMessage);
+                        if (kDebugMode) {
+                          print(errorMessage);
+                        }
                         setState(() {
                           _isLoading = false;
                         });

@@ -1,6 +1,5 @@
 import 'package:chat_app/Classes/message.dart';
 import 'package:chat_app/Pages/conversation.dart';
-import 'package:chat_app/Pages/settings.dart';
 import 'package:chat_app/components/appbar.dart';
 import 'package:chat_app/models/global.dart';
 import 'package:chat_app/models/user_model.dart';
@@ -20,7 +19,6 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   final User? user = Auth().currentUser;
   final firestore = FirebaseFirestore.instance;
-  final int _selectedPage = 0;
   List<UserModel> users = [];
   @override
   Widget build(BuildContext context) {
@@ -246,12 +244,19 @@ class _HomeState extends State<Home> {
                                                               "No Messages Yet",
                                                       style: TextStyle(
                                                           color: lastMessage
-                                                                  .isRead!
+                                                                          .senderId ==
+                                                                      user!
+                                                                          .uid ||
+                                                                  lastMessage
+                                                                      .isRead!
                                                               ? Colors.grey
                                                               : black,
                                                           fontSize: 15),
                                                     ),
-                                                    lastMessages.isNotEmpty
+                                                    lastMessages.isNotEmpty &&
+                                                            lastMessage
+                                                                    .senderId !=
+                                                                user!.uid
                                                         ? Container(
                                                             width: 20,
                                                             height: 20,

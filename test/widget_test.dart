@@ -13,7 +13,10 @@ import 'package:chat_app/main.dart';
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(const MyApp(
+      token:
+          " e99Md3WRTaCjphZiHGc0iB:APA91bHdsz43IIEX1G_zOf1HjZhrhjxKUlC8Pxw-W4CfGsqhJ6a1HD1Z72tO0QsyfsoEJ8K2VtB8y0Xv3qSn2D2QkwQjrMsxrMNVUlu6bEg6gsA3UtU1exTKtOQejdE5RanMP1vYcXbn",
+    ));
 
     // Verify that our counter starts at 0.
     expect(find.text('0'), findsOneWidget);
