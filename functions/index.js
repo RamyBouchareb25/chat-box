@@ -29,21 +29,21 @@ exports.checkHealth = functions.https.onCall(async (data, context) => {
 });
 
 exports.sendNotification = functions.https.onCall(async (data, context) => {
-//   const title = data.title;
-//   const body = data.body;
-//   const image = data.image;
-//   const token = data.token;
+  const title = data.title;
+  const body = data.body;
+  const token = data.token;
 
   try {
     const payload = {
-      token: ' e99Md3WRTaCjphZiHGc0iB:APA91bHdsz43IIEX1G_zOf1HjZhrhjxKUlC8Pxw-W4CfGsqhJ6a1HD1Z72tO0QsyfsoEJ8K2VtB8y0Xv3qSn2D2QkwQjrMsxrMNVUlu6bEg6gsA3UtU1exTKtOQejdE5RanMP1vYcXbn',
+      token: token,
       notification: {
-        title: "title",
-        body: "body",
-        image: "image",
+        title: title,
+        body: body,
+        image: "https://firebasestorage.googleapis.com/v0/b/chatbox-3dac1.appspot.com/o/FCMImages%2FApp%20icon.png?alt=media&token=13eeecc5-afba-4cf7-a4dc-9814c32289a4",
       },
       data: {
-        body: "body",
+        image:"https://firebasestorage.googleapis.com/v0/b/chatbox-3dac1.appspot.com/o/FCMImages%2FApp%20icon.png?alt=media&token=13eeecc5-afba-4cf7-a4dc-9814c32289a4",
+        body: body,
       },
     };
 

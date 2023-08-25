@@ -1,4 +1,6 @@
+import 'package:chat_app/auth.dart';
 import 'package:chat_app/models/global.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -73,6 +75,30 @@ Future<void> main() async {
   ));
 }
 
+Future<void> addToken(String? token) async {
+  try {
+    await FirebaseFirestore.instance
+        .collection("Users")
+        .where("UserId", isEqualTo: Auth().currentUser!.uid)
+        .get()
+        .then((value) => {
+              for (var element in value.docs)
+                {
+                  FirebaseFirestore.instance
+                      .collection("Users")
+                      .doc(element.id)
+                      .update({
+                    "tokens": FieldValue.arrayUnion([token])
+                  })
+                }
+            });
+  } on FirebaseException catch (error) {
+    if (kDebugMode) {
+      print(error);
+    }
+  }
+}
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key, required this.token});
   final String? token;
@@ -82,6 +108,7 @@ class MyApp extends StatelessWidget {
     if (kDebugMode) {
       print("token : \n${token!}");
     }
+    addToken(token);
     return MaterialApp(
         debugShowCheckedModeBanner: false,
         themeMode: ThemeMode.light,

@@ -4,7 +4,6 @@ import 'package:chat_app/models/icomoon_icons.dart';
 import 'package:chat_app/models/user_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:chat_app/models/global.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -27,25 +26,32 @@ class _ConversationState extends State<Conversation> {
   FirebaseFirestore firestore = FirebaseFirestore.instance;
   FirebaseFunctions functions = FirebaseFunctions.instance;
   FirebaseStorage storage = FirebaseStorage.instance;
-
+  UserModel? interlocuter;
   final FocusNode _textFieldFocus = FocusNode();
   double _bottomAppBarOffset = 0.0;
   double _bodyOffset = 0.0;
   final TextEditingController messageController = TextEditingController();
   bool isWriting = false;
-  late String? url;
-  Future<HttpsCallableResult> sendMessage() async {
+  String? url;
+  String chatBoxImageUrl =
+      "https://firebasestorage.googleapis.com/v0/b/chatbox-3dac1.appspot.com/o/Images%2FApp%20icon.png?alt=media&token=d050fd05-8dbe-4393-a55e-2d4d9515218d";
+  Future<HttpsCallableResult> sendMessage(String token) async {
     HttpsCallable sendNotif = functions.httpsCallable("sendNotification");
-    final resp = sendNotif.call();
+    final resp = sendNotif.call(<String, dynamic>{
+      "title": Auth().currentUser!.displayName,
+      "body": messageController.text,
+      "token": token,
+      "image": chatBoxImageUrl,
+    });
     return await resp;
   }
 
   @override
-  void initState() async {
+  void initState() {
     super.initState();
 
     _textFieldFocus.addListener(_onTextFieldFocusChange);
-    url = await storage.ref().child("Github Profile.jpg").getDownloadURL();
+
     if (widget.lastMessages.isNotEmpty) {
       for (var element in widget.lastMessages) {
         if (element.senderId != Auth().currentUser!.uid) {
@@ -69,6 +75,21 @@ class _ConversationState extends State<Conversation> {
 
   @override
   Widget build(BuildContext context) {
+    var ref = storage.ref();
+    if (widget.user.profilePhoto != null) {
+      if (widget.user.profilePhoto != "") {
+        var reference = ref.child(widget.user.profilePhoto!);
+        reference.getDownloadURL().then((value) {
+          setState(() {
+            url = value;
+          });
+        });
+      } else {
+        url =
+            "https://firebasestorage.googleapis.com/v0/b/chatbox-3dac1.appspot.com/o/Images%2FProfile.png?alt=media&token=ba7e58ae-5cfd-4172-acdb-8580d68c42ef";
+      }
+    }
+
     return Scaffold(
         resizeToAvoidBottomInset: true,
         appBar: AppBar(
@@ -92,7 +113,7 @@ class _ConversationState extends State<Conversation> {
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
-                  UserModel interlocuter =
+                  interlocuter =
                       UserModel.fromMap(snapshot.data!.docs[0].data());
                   return Row(
                     children: [
@@ -100,9 +121,11 @@ class _ConversationState extends State<Conversation> {
                         children: [
                           CircleAvatar(
                             radius: 20,
-                            backgroundColor: black,
-                            backgroundImage:
-                                NetworkImage(interlocuter.profilePhoto ?? url!),
+                            backgroundColor: Colors.white,
+                            backgroundImage: url != null
+                                ? NetworkImage(url!)
+                                : const AssetImage("Assets/Profile.png")
+                                    as ImageProvider,
                           ),
                           Positioned(
                             bottom: 0,
@@ -111,7 +134,7 @@ class _ConversationState extends State<Conversation> {
                               height: 15,
                               width: 15,
                               decoration: BoxDecoration(
-                                color: interlocuter.status == "online"
+                                color: interlocuter!.status == "online"
                                     ? Colors.green
                                     : Colors.grey,
                                 borderRadius: BorderRadius.circular(10),
@@ -133,7 +156,7 @@ class _ConversationState extends State<Conversation> {
                             style: const TextStyle(color: black),
                           ),
                           Text(
-                            interlocuter.status ?? "error fetching status",
+                            interlocuter!.status ?? "error fetching status",
                             style: const TextStyle(color: grey, fontSize: 12),
                           ),
                         ],
@@ -356,10 +379,10 @@ class _ConversationState extends State<Conversation> {
                     ),
                     onPressed: () async {
                       if (isWriting) {
-                        var response = await sendMessage();
-                        if (kDebugMode) {
-                          print(response.data);
+                        for (var token in interlocuter!.token!) {
+                          await sendMessage(token);
                         }
+
                         firestore
                             .collection("Rooms")
                             .doc(widget.roomId)

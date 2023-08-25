@@ -6,7 +6,6 @@ class MessageData {
   final String? timestamp;
   final String? type;
   final bool? isRead;
-
   MessageData({
     this.id,
     this.message,

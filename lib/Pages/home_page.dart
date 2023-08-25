@@ -4,6 +4,7 @@ import 'package:chat_app/components/appbar.dart';
 import 'package:chat_app/models/global.dart';
 import 'package:chat_app/models/user_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:chat_app/auth.dart';
@@ -19,6 +20,8 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   final User? user = Auth().currentUser;
   final firestore = FirebaseFirestore.instance;
+  FirebaseStorage storage = FirebaseStorage.instance;
+
   List<UserModel> users = [];
   @override
   Widget build(BuildContext context) {
@@ -145,13 +148,14 @@ class _HomeState extends State<Home> {
                                                 snapshot.data!.docs[index]
                                                     .data()["users"][1]) &&
                                         element.data()["UserId"] != user!.uid) {
-                                      setState(() {
-                                        UserModel user =
-                                            UserModel.fromMap(element.data());
-                                        users.add(user);
-                                      });
+                                      UserModel userNow =
+                                          UserModel.fromMap(element.data());
+                                      users.add(userNow);
                                     }
                                   }
+                                  setState(() {
+                                    users = users;
+                                  });
                                 });
                                 return StreamBuilder(
                                     stream: firestore

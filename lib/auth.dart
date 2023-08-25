@@ -1,6 +1,7 @@
 import 'package:chat_app/models/user_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 
 class Auth {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -10,6 +11,8 @@ class Auth {
   Future<void> signInWithEMailAndPassword(
       {required String email, required String password}) async {
     await _auth.signInWithEmailAndPassword(email: email, password: password);
+    
+    
   }
 
   Future<void> createUserWithEmailAndPassword({
@@ -24,14 +27,13 @@ class Auth {
       uid: _auth.currentUser!.uid,
       name: name,
       email: email,
-      status: "offline",
+      status: "online",
       profilePhoto: "",
     );
     FirebaseFirestore.instance.collection("Users").add(user.toMap());
   }
 
   Future<void> signOut() async {
-    await _auth.signOut();
     FirebaseFirestore.instance
         .collection("Users")
         .where("UserId", isEqualTo: Auth().currentUser!.uid)
@@ -44,5 +46,6 @@ class Auth {
             .update({"Status": "offline"});
       }
     });
+    await _auth.signOut();
   }
 }

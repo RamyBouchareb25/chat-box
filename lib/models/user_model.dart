@@ -4,6 +4,7 @@ class UserModel {
   final String? email;
   final String? status;
   final String? profilePhoto;
+  final List<dynamic>? token;
 
   UserModel({
     this.uid,
@@ -11,6 +12,7 @@ class UserModel {
     this.email,
     this.status,
     this.profilePhoto,
+    this.token,
   });
 
   factory UserModel.fromMap(Map<String, dynamic> map) {
@@ -20,6 +22,7 @@ class UserModel {
       email: map['E-Mail'],
       status: map['Status'],
       profilePhoto: map['PhotoUrl'],
+      token: map['tokens'],
     );
   }
 
@@ -30,6 +33,7 @@ class UserModel {
       'E-Mail': email,
       'Status': status,
       'PhotoUrl': profilePhoto,
+      'tokens': token,
     };
   }
 }
