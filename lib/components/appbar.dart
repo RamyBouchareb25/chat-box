@@ -1,3 +1,4 @@
+import 'package:chat_app/Pages/search.dart';
 import 'package:chat_app/auth.dart';
 import 'package:chat_app/models/global.dart';
 import 'package:flutter/material.dart';
@@ -8,7 +9,7 @@ class DefaultAppBar extends StatefulWidget implements PreferredSizeWidget {
       {super.key, required this.title, required this.context, this.image});
   final String title;
   final BuildContext context;
-  final Image? image;
+  final ImageProvider? image;
   @override
   Size get preferredSize => Size(MediaQuery.of(context).size.width,
       MediaQuery.of(context).size.height * 0.1);
@@ -50,7 +51,8 @@ class _DefaultAppBarState extends State<DefaultAppBar> {
                   foregroundColor: Colors.transparent,
                   backgroundColor: Colors.white,
                   // backgroundColor: Colors.transparent,
-                  child: widget.image ?? Image.asset("Assets/Profile-Dark.png"),
+                  foregroundImage: widget.image ??
+                      Image.asset("Assets/Profile-Dark.png") as ImageProvider,
                 )),
           ),
         )
@@ -63,7 +65,13 @@ class _DefaultAppBarState extends State<DefaultAppBar> {
               border: Border.all(color: grey, width: 1)),
           child: IconButton(
             icon: const Icon(Icomoon.search),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(
+                builder: (context) {
+                  return const SearchPage();
+                },
+              ));
+            },
           ),
         ),
       ),

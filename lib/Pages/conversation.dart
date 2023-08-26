@@ -1,13 +1,18 @@
+import 'dart:io';
+
 import 'package:chat_app/Classes/message.dart';
 import 'package:chat_app/auth.dart';
 import 'package:chat_app/models/icomoon_icons.dart';
 import 'package:chat_app/models/user_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:chat_app/models/global.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter_sound/flutter_sound.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class Conversation extends StatefulWidget {
   const Conversation(
@@ -23,6 +28,7 @@ class Conversation extends StatefulWidget {
 }
 
 class _ConversationState extends State<Conversation> {
+  final record = FlutterSoundRecorder();
   FirebaseFirestore firestore = FirebaseFirestore.instance;
   FirebaseFunctions functions = FirebaseFunctions.instance;
   FirebaseStorage storage = FirebaseStorage.instance;
@@ -32,7 +38,6 @@ class _ConversationState extends State<Conversation> {
   double _bodyOffset = 0.0;
   final TextEditingController messageController = TextEditingController();
   bool isWriting = false;
-  String? url;
   String chatBoxImageUrl =
       "https://firebasestorage.googleapis.com/v0/b/chatbox-3dac1.appspot.com/o/Images%2FApp%20icon.png?alt=media&token=d050fd05-8dbe-4393-a55e-2d4d9515218d";
   Future<HttpsCallableResult> sendMessage(String token) async {
@@ -46,9 +51,39 @@ class _ConversationState extends State<Conversation> {
     return await resp;
   }
 
+  Future<void> initRecord() async {
+    final status = await Permission.microphone.request();
+    if (status.isDenied) {
+      throw 'permission denied to access microphone';
+    }
+    await record.openRecorder();
+    await record.setSubscriptionDuration(const Duration(milliseconds: 10));
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    record.closeRecorder();
+  }
+
+  Future<void> startRecord() async {
+    await record.startRecorder(toFile: 'audio');
+  }
+
+  Future<void> stopRecord() async {
+    final path = await record.stopRecorder();
+    final file = File(path!);
+    if (kDebugMode) {
+      print('file path is : $path');
+      print('file location is : $file');
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+
+    initRecord();
 
     _textFieldFocus.addListener(_onTextFieldFocusChange);
 
@@ -75,21 +110,6 @@ class _ConversationState extends State<Conversation> {
 
   @override
   Widget build(BuildContext context) {
-    var ref = storage.ref();
-    if (widget.user.profilePhoto != null) {
-      if (widget.user.profilePhoto != "") {
-        var reference = ref.child(widget.user.profilePhoto!);
-        reference.getDownloadURL().then((value) {
-          setState(() {
-            url = value;
-          });
-        });
-      } else {
-        url =
-            "https://firebasestorage.googleapis.com/v0/b/chatbox-3dac1.appspot.com/o/Images%2FProfile.png?alt=media&token=ba7e58ae-5cfd-4172-acdb-8580d68c42ef";
-      }
-    }
-
     return Scaffold(
         resizeToAvoidBottomInset: true,
         appBar: AppBar(
@@ -122,8 +142,10 @@ class _ConversationState extends State<Conversation> {
                           CircleAvatar(
                             radius: 20,
                             backgroundColor: Colors.white,
-                            backgroundImage: url != null
-                                ? NetworkImage(url!)
+                            backgroundImage: interlocuter!.profilePhoto != null
+                                ? NetworkImage(interlocuter!.profilePhoto! != ""
+                                    ? interlocuter!.profilePhoto!
+                                    : "https://firebasestorage.googleapis.com/v0/b/chatbox-3dac1.appspot.com/o/Images%2FProfile.png?alt=media&token=3b0b8b1e-5b0a-4b0e-9b0a-9b0a9b0a9b0a")
                                 : const AssetImage("Assets/Profile.png")
                                     as ImageProvider,
                           ),
@@ -309,6 +331,11 @@ class _ConversationState extends State<Conversation> {
                     return const Center(
                       child: Text("Something went wrong"),
                     );
+                  } else {
+                    return Center(
+                      child: Text(
+                          "Send Your first Message to ${widget.user.name}!"),
+                    );
                   }
                 }
                 return const Center(
@@ -410,7 +437,13 @@ class _ConversationState extends State<Conversation> {
                             color: black,
                             size: 20,
                           ),
-                          onPressed: () {},
+                          onPressed: () {
+                            if (record.isStopped) {
+                              startRecord();
+                            } else if (record.isRecording) {
+                              stopRecord();
+                            }
+                          },
                         )
                       : const SizedBox(),
                 ],

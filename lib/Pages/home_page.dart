@@ -23,6 +23,7 @@ class _HomeState extends State<Home> {
   FirebaseStorage storage = FirebaseStorage.instance;
 
   List<UserModel> users = [];
+  List<String> urls = [];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,6 +32,11 @@ class _HomeState extends State<Home> {
         appBar: DefaultAppBar(
           title: "Home",
           context: context,
+          image: user!.photoURL != null
+              ? NetworkImage(user!.photoURL!)
+              : const Image(
+                  image: AssetImage("Assets/Profile-Dark.png"),
+                ) as ImageProvider,
         ),
         body: SafeArea(
           top: true,
@@ -63,10 +69,18 @@ class _HomeState extends State<Home> {
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
                                       children: [
-                                        const Expanded(
+                                        Expanded(
                                           child: CircleAvatar(
                                             radius: 30,
                                             backgroundColor: Colors.white,
+                                            backgroundImage: index == 0
+                                                ? NetworkImage(user!.photoURL!)
+                                                : users.length > index
+                                                    ? NetworkImage(users[index]
+                                                        .profilePhoto!)
+                                                    : const AssetImage(
+                                                            "Assets/Profile-Dark.png")
+                                                        as ImageProvider,
                                           ),
                                         ),
                                         Text(
@@ -153,9 +167,6 @@ class _HomeState extends State<Home> {
                                       users.add(userNow);
                                     }
                                   }
-                                  setState(() {
-                                    users = users;
-                                  });
                                 });
                                 return StreamBuilder(
                                     stream: firestore
@@ -167,9 +178,11 @@ class _HomeState extends State<Home> {
                                     builder: (context, snap) {
                                       if (snap.hasData) {
                                         MessageData lastMessage =
-                                            MessageData.fromMap(snap
-                                                .data!.docs[snap.data!.size - 1]
-                                                .data());
+                                            snap.data!.size == 0
+                                                ? MessageData()
+                                                : MessageData.fromMap(snap.data!
+                                                    .docs[snap.data!.size - 1]
+                                                    .data());
                                         List<MessageData> lastMessages = [];
                                         for (var element in snap.data!.docs) {
                                           if (element.data()["isRead"] ==
@@ -206,9 +219,19 @@ class _HomeState extends State<Home> {
                                                     }));
                                                   }
                                                 },
-                                                leading: const CircleAvatar(
+                                                leading: CircleAvatar(
                                                   radius: 30,
-                                                  backgroundColor: Colors.black,
+                                                  backgroundImage: users
+                                                          .isNotEmpty
+                                                      ? NetworkImage(users[
+                                                                      index]
+                                                                  .profilePhoto !=
+                                                              ""
+                                                          ? users[index]
+                                                              .profilePhoto!
+                                                          : "https://firebasestorage.googleapis.com/v0/b/chatbox-3dac1.appspot.com/o/Images%2FProfile-Dark.png?alt=media&token=14a7aa82-5323-4903-90fc-a2738bd42577")
+                                                      : null,
+                                                  backgroundColor: Colors.white,
                                                 ),
                                                 title: Row(
                                                   mainAxisAlignment:
@@ -225,9 +248,12 @@ class _HomeState extends State<Home> {
                                                                 FontWeight
                                                                     .bold)),
                                                     Text(
-                                                        timeago.format(DateTime
-                                                            .parse(lastMessage
-                                                                .timestamp!)),
+                                                        lastMessage.id == null
+                                                            ? "No Messages Yet"
+                                                            : timeago.format(
+                                                                DateTime.parse(
+                                                                    lastMessage
+                                                                        .timestamp!)),
                                                         style: const TextStyle(
                                                             fontSize: 15,
                                                             color:
@@ -247,7 +273,9 @@ class _HomeState extends State<Home> {
                                                                   .message ??
                                                               "No Messages Yet",
                                                       style: TextStyle(
-                                                          color: lastMessage
+                                                          color: lastMessages
+                                                                      .isEmpty ||
+                                                                  lastMessage
                                                                           .senderId ==
                                                                       user!
                                                                           .uid ||
