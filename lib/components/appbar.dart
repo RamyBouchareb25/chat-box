@@ -50,6 +50,7 @@ class _DefaultAppBarState extends State<DefaultAppBar> {
                 child: CircleAvatar(
                   foregroundColor: Colors.transparent,
                   backgroundColor: Colors.white,
+                  radius: 30,
                   // backgroundColor: Colors.transparent,
                   foregroundImage: widget.image ??
                       Image.asset("Assets/Profile-Dark.png") as ImageProvider,

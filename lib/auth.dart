@@ -15,6 +15,10 @@ class Auth {
     
   }
 
+  Future<void> resetPass() async {
+    await _auth.sendPasswordResetEmail(email: "drboucharebsarah@gmail.com");
+  }
+
   Future<void> createUserWithEmailAndPassword({
     required String email,
     required String password,

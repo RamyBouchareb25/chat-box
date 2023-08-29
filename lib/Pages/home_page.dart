@@ -8,7 +8,9 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:chat_app/auth.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -19,35 +21,93 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   final User? user = Auth().currentUser;
-  final firestore = FirebaseFirestore.instance;
-  FirebaseStorage storage = FirebaseStorage.instance;
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  final int messageMaxLength = 18;
 
+  FirebaseStorage storage = FirebaseStorage.instance;
   List<UserModel> users = [];
   List<String> urls = [];
+
+  Future<QuerySnapshot<Map<String, dynamic>>> _getRooms() async {
+    return await firestore
+        .collection("Rooms")
+        .where("users", arrayContains: user!.uid)
+        .get();
+  }
+
+  Stream<QuerySnapshot<Map<String, dynamic>>> _getMessages(
+      {required dynamic docId, required bool isEmpty}) {
+    return isEmpty
+        ? const Stream.empty()
+        : firestore
+            .collection("Rooms")
+            .doc(docId)
+            .collection("messages")
+            .orderBy("timestamp")
+            .snapshots();
+  }
+
+  Future<QuerySnapshot<Map<String, dynamic>>> _getUsers() async {
+    return await firestore.collection("Users").get();
+  }
+
+  final RefreshController _controller = RefreshController();
+
+  Future<void> _onRefresh() async {
+    await _getRooms();
+    await _getUsers();
+    setState(() {});
+    _controller.refreshCompleted();
+  }
+
+  Future<void> _onLoading() async {
+    await _getRooms();
+    _controller.loadComplete();
+  }
+
+  MessageData? lastMessage;
+  List<MessageData> lastMessages = [];
+  @override
+  void initState() {
+    _getUsers().then((value) {
+      _getRooms().then((snapshot) {
+        for (var index = 0; index < snapshot.docs.length; index++) {
+          for (var aUser in value.docs) {
+            UserModel userNow = UserModel.fromMap(aUser.data());
+            if ((userNow.uid == snapshot.docs[index].data()["users"][0] ||
+                    aUser.data()["UserId"] ==
+                        snapshot.docs[index].data()["users"][1]) &&
+                userNow.uid != user!.uid) {
+              users.add(userNow);
+            }
+          }
+        }
+        _onRefresh();
+      });
+    });
+
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Auth().currentUser!.updatePhotoURL(
+    //     "https://firebasestorage.googleapis.com/v0/b/chatbox-3dac1.appspot.com/o/Profile%20Photos%2Fmejpg.jpg?alt=media&token=20625eb2-e272-49b8-bcec-c7e762e4a786");
     return Scaffold(
         resizeToAvoidBottomInset: true,
         backgroundColor: black,
         appBar: DefaultAppBar(
           title: "Home",
           context: context,
-          image: user!.photoURL != null
-              ? NetworkImage(user!.photoURL!)
-              : const Image(
-                  image: AssetImage("Assets/Profile-Dark.png"),
-                ) as ImageProvider,
+          image: NetworkImage(user!.photoURL!),
         ),
         body: SafeArea(
           top: true,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              StreamBuilder(
-                  stream: firestore
-                      .collection("Rooms")
-                      .where("users", arrayContains: user!.uid)
-                      .snapshots(),
+              FutureBuilder(
+                  future: _getRooms(),
                   builder: (context, snapshot) {
                     if (snapshot.hasData) {
                       return Container(
@@ -61,7 +121,8 @@ class _HomeState extends State<Home> {
                               child: ListView.builder(
                                 itemCount: snapshot.data!.size + 1,
                                 scrollDirection: Axis.horizontal,
-                                itemBuilder: (context, index) {
+                                itemBuilder: (context, i) {
+                                  var index = i - 1;
                                   return Padding(
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 10, vertical: 25),
@@ -73,18 +134,26 @@ class _HomeState extends State<Home> {
                                           child: CircleAvatar(
                                             radius: 30,
                                             backgroundColor: Colors.white,
-                                            backgroundImage: index == 0
+                                            backgroundImage: i == 0
                                                 ? NetworkImage(user!.photoURL!)
                                                 : users.length > index
                                                     ? NetworkImage(users[index]
-                                                        .profilePhoto!)
+                                                                .profilePhoto !=
+                                                            ""
+                                                        ? users[index]
+                                                            .profilePhoto!
+                                                        : "https://firebasestorage.googleapis.com/v0/b/chatbox-3dac1.appspot.com/o/Images%2FProfile-Dark.png?alt=media&token=14a7aa82-5323-4903-90fc-a2738bd42577")
                                                     : const AssetImage(
                                                             "Assets/Profile-Dark.png")
                                                         as ImageProvider,
                                           ),
                                         ),
                                         Text(
-                                          index == 0 ? "My Status" : "User",
+                                          i == 0
+                                              ? "My Status"
+                                              : users.length > index
+                                                  ? users[index].name!
+                                                  : "User",
                                           style: const TextStyle(
                                               color: Colors.white),
                                         ),
@@ -136,71 +205,57 @@ class _HomeState extends State<Home> {
                 ),
               ),
               Expanded(
-                child: StreamBuilder(
-                    stream: firestore
-                        .collection("Rooms")
-                        .where("users", arrayContains: user!.uid)
-                        .snapshots(),
+                child: FutureBuilder(
+                    future: _getRooms(),
                     builder: (context, snapshot) {
-                      if (snapshot.hasData) {
-                        if (snapshot.data!.docs.isNotEmpty) {
-                          return CustomScrollView(
+                      // if (snapshot.hasData) {
+                      var finishLoading2 = snapshot.hasData;
+                      if (!finishLoading2 || snapshot.data!.docs.isNotEmpty) {
+                        return SmartRefresher(
+                          enablePullUp: false,
+                          enablePullDown: true,
+                          controller: _controller,
+                          onLoading: _onLoading,
+                          onRefresh: _onRefresh,
+                          child: CustomScrollView(
                             slivers: [
                               SliverList(
                                   delegate: SliverChildBuilderDelegate(
-                                      childCount: snapshot.data!.size,
-                                      (context, index) {
-                                firestore
-                                    .collection("Users")
-                                    .get()
-                                    .then((value) {
-                                  for (var element in value.docs) {
-                                    if ((element.data()["UserId"] ==
-                                                snapshot.data!.docs[index]
-                                                    .data()["users"][0] ||
-                                            element.data()["UserId"] ==
-                                                snapshot.data!.docs[index]
-                                                    .data()["users"][1]) &&
-                                        element.data()["UserId"] != user!.uid) {
-                                      UserModel userNow =
-                                          UserModel.fromMap(element.data());
-                                      users.add(userNow);
-                                    }
-                                  }
-                                });
+                                      childCount: finishLoading2
+                                          ? snapshot.data!.size
+                                          : 5, (context, index) {
                                 return StreamBuilder(
-                                    stream: firestore
-                                        .collection("Rooms")
-                                        .doc(snapshot.data!.docs[index].id)
-                                        .collection("messages")
-                                        .orderBy("timestamp")
-                                        .snapshots(),
+                                    stream: _getMessages(
+                                        docId: finishLoading2
+                                            ? snapshot.data!.docs[index].id
+                                            : null,
+                                        isEmpty: !finishLoading2),
                                     builder: (context, snap) {
-                                      if (snap.hasData) {
-                                        MessageData lastMessage =
-                                            snap.data!.size == 0
-                                                ? MessageData()
-                                                : MessageData.fromMap(snap.data!
-                                                    .docs[snap.data!.size - 1]
-                                                    .data());
-                                        List<MessageData> lastMessages = [];
+                                      var finishLoading = snap.hasData;
+
+                                      if (finishLoading && finishLoading2) {
+                                        lastMessage = snap.data!.size == 0
+                                            ? MessageData()
+                                            : MessageData.fromMap(snap
+                                                .data!.docs[snap.data!.size - 1]
+                                                .data());
                                         for (var element in snap.data!.docs) {
-                                          if (element.data()["isRead"] ==
-                                              false) {
-                                            var msg = MessageData.fromMap(
-                                                element.data());
+                                          var msg = MessageData.fromMap(
+                                              element.data());
+                                          if (msg.isRead == false) {
                                             msg.id = element.id;
                                             lastMessages.add(msg);
                                           }
                                         }
-                                        return Container(
-                                          color: Colors.white,
-                                          child: Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      vertical: 16.0),
-                                              child: ListTile(
-                                                onTap: () {
+                                      }
+                                      return Container(
+                                        color: Colors.white,
+                                        child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 16.0),
+                                            child: ListTile(
+                                              onTap: () {
+                                                if (finishLoading) {
                                                   if (users.length > index) {
                                                     Navigator.push(context,
                                                         MaterialPageRoute(
@@ -218,111 +273,167 @@ class _HomeState extends State<Home> {
                                                       );
                                                     }));
                                                   }
-                                                },
-                                                leading: CircleAvatar(
-                                                  radius: 30,
-                                                  backgroundImage: users
-                                                          .isNotEmpty
-                                                      ? NetworkImage(users[
-                                                                      index]
-                                                                  .profilePhoto !=
-                                                              ""
-                                                          ? users[index]
-                                                              .profilePhoto!
-                                                          : "https://firebasestorage.googleapis.com/v0/b/chatbox-3dac1.appspot.com/o/Images%2FProfile-Dark.png?alt=media&token=14a7aa82-5323-4903-90fc-a2738bd42577")
-                                                      : null,
-                                                  backgroundColor: Colors.white,
-                                                ),
-                                                title: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  children: [
-                                                    Text(
-                                                        users.length > index
-                                                            ? users[index].name!
-                                                            : "User",
-                                                        style: const TextStyle(
-                                                            fontSize: 20,
-                                                            fontWeight:
-                                                                FontWeight
-                                                                    .bold)),
-                                                    Text(
-                                                        lastMessage.id == null
-                                                            ? "No Messages Yet"
-                                                            : timeago.format(
-                                                                DateTime.parse(
-                                                                    lastMessage
-                                                                        .timestamp!)),
-                                                        style: const TextStyle(
-                                                            fontSize: 15,
-                                                            color:
-                                                                Colors.grey)),
-                                                  ],
-                                                ),
-                                                subtitle: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  children: [
-                                                    Text(
-                                                      lastMessage.senderId ==
-                                                              user!.uid
-                                                          ? "You: ${lastMessage.message!}"
-                                                          : lastMessage
-                                                                  .message ??
-                                                              "No Messages Yet",
-                                                      style: TextStyle(
-                                                          color: lastMessages
-                                                                      .isEmpty ||
-                                                                  lastMessage
-                                                                          .senderId ==
-                                                                      user!
-                                                                          .uid ||
-                                                                  lastMessage
-                                                                      .isRead!
-                                                              ? Colors.grey
-                                                              : black,
-                                                          fontSize: 15),
-                                                    ),
-                                                    lastMessages.isNotEmpty &&
-                                                            lastMessage
-                                                                    .senderId !=
-                                                                user!.uid
-                                                        ? Container(
-                                                            width: 20,
-                                                            height: 20,
-                                                            decoration: BoxDecoration(
-                                                                color:
-                                                                    Colors.red,
-                                                                borderRadius:
-                                                                    BorderRadius
+                                                }
+                                              },
+                                              leading: finishLoading
+                                                  ? CircleAvatar(
+                                                      radius: 30,
+                                                      backgroundImage: users
+                                                              .isNotEmpty
+                                                          ? NetworkImage(users[
+                                                                          index]
+                                                                      .profilePhoto !=
+                                                                  ""
+                                                              ? users[index]
+                                                                  .profilePhoto!
+                                                              : "https://firebasestorage.googleapis.com/v0/b/chatbox-3dac1.appspot.com/o/Images%2FProfile-Dark.png?alt=media&token=14a7aa82-5323-4903-90fc-a2738bd42577")
+                                                          : null,
+                                                      backgroundColor:
+                                                          Colors.white,
+                                                    )
+                                                  : Shimmer.fromColors(
+                                                      baseColor: Colors.grey,
+                                                      highlightColor: black,
+                                                      child: Container(
+                                                        height: 50,
+                                                        width: 50,
+                                                        decoration: const BoxDecoration(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .all(Radius
                                                                         .circular(
-                                                                            100)),
-                                                            child: Center(
-                                                              child: Text(
-                                                                lastMessages
-                                                                    .length
-                                                                    .toString(),
-                                                                style: const TextStyle(
+                                                                            50)),
+                                                            color:
+                                                                Colors.white),
+                                                      )),
+                                              title: finishLoading
+                                                  ? Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .spaceBetween,
+                                                      children: [
+                                                        Text(
+                                                            users.length > index
+                                                                ? users[index]
+                                                                    .name!
+                                                                : "User",
+                                                            style: const TextStyle(
+                                                                fontSize: 20,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold)),
+                                                        Text(
+                                                            lastMessage!.id ==
+                                                                    null
+                                                                ? "No Messages Yet"
+                                                                : timeago.format(
+                                                                    DateTime.parse(
+                                                                        lastMessage!
+                                                                            .timestamp!)),
+                                                            style:
+                                                                const TextStyle(
+                                                                    fontSize:
+                                                                        15,
                                                                     color: Colors
-                                                                        .white),
-                                                              ),
-                                                            ),
-                                                          )
-                                                        : const SizedBox(),
-                                                  ],
-                                                ),
-                                              )),
-                                        );
-                                      } else {
-                                        return const Center(
-                                          child: CircularProgressIndicator(
-                                            color: primaryColor,
-                                            backgroundColor: Colors.white,
-                                          ),
-                                        );
-                                      }
+                                                                        .grey)),
+                                                      ],
+                                                    )
+                                                  : Shimmer.fromColors(
+                                                      baseColor: Colors.grey,
+                                                      highlightColor: black,
+                                                      child: Container(
+                                                        height: 50,
+                                                        decoration: const BoxDecoration(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .all(Radius
+                                                                        .circular(
+                                                                            25)),
+                                                            color:
+                                                                Colors.white),
+                                                      )),
+                                              subtitle: finishLoading
+                                                  ? Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .spaceBetween,
+                                                      children: [
+                                                        Text(
+                                                          lastMessage!.senderId ==
+                                                                  null
+                                                              ? "No Messages Yet"
+                                                              : lastMessage!
+                                                                          .senderId ==
+                                                                      user!.uid
+                                                                  ? "You: ${lastMessage!.message!.substring(0, lastMessage!.message!.length < messageMaxLength ? lastMessage!.message!.length : messageMaxLength)} ${lastMessage!.message!.length > messageMaxLength ? "..." : ""}"
+                                                                  : lastMessage!
+                                                                          .message ??
+                                                                      "No Messages Yet",
+                                                          style: TextStyle(
+                                                              color: lastMessage!
+                                                                              .id ==
+                                                                          null ||
+                                                                      lastMessage!
+                                                                              .senderId ==
+                                                                          user!
+                                                                              .uid ||
+                                                                      lastMessage!
+                                                                          .isRead!
+                                                                  ? Colors.grey
+                                                                  : black,
+                                                              fontSize: 15),
+                                                        ),
+                                                        lastMessages.isNotEmpty &&
+                                                                lastMessage!
+                                                                        .id !=
+                                                                    null &&
+                                                                lastMessage!
+                                                                        .senderId !=
+                                                                    user!.uid
+                                                            ? Container(
+                                                                width: 20,
+                                                                height: 20,
+                                                                decoration: BoxDecoration(
+                                                                    color: Colors
+                                                                        .red,
+                                                                    borderRadius:
+                                                                        BorderRadius.circular(
+                                                                            100)),
+                                                                child: Center(
+                                                                  child: Text(
+                                                                    lastMessages
+                                                                        .length
+                                                                        .toString(),
+                                                                    style: const TextStyle(
+                                                                        color: Colors
+                                                                            .white),
+                                                                  ),
+                                                                ),
+                                                              )
+                                                            : const SizedBox(),
+                                                      ],
+                                                    )
+                                                  : Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                              top: 10),
+                                                      child: Shimmer.fromColors(
+                                                          baseColor:
+                                                              Colors.grey,
+                                                          highlightColor: black,
+                                                          child: Container(
+                                                            height: 50,
+                                                            decoration: const BoxDecoration(
+                                                                borderRadius: BorderRadius
+                                                                    .all(Radius
+                                                                        .circular(
+                                                                            25)),
+                                                                color: Colors
+                                                                    .white),
+                                                          )),
+                                                    ),
+                                            )),
+                                      );
                                     });
                               })),
                               SliverFillRemaining(
@@ -331,24 +442,22 @@ class _HomeState extends State<Home> {
                                     color: Colors.white,
                                   ))
                             ],
-                          );
-                        } else {
-                          return const Center(
-                              child:
-                                  Text("You have No conversations for now X)"));
-                        }
-                      } else if (snapshot.hasError) {
-                        return const Center(
-                          child: Text("An Error Occured X("),
+                          ),
                         );
                       } else {
                         return const Center(
-                          child: CircularProgressIndicator(
-                            color: primaryColor,
-                            backgroundColor: Colors.white,
-                          ),
-                        );
+                            child:
+                                Text("You have No conversations for now X)"));
                       }
+
+                      // } else {
+                      //   return Center(
+                      //     child: SizedBox(
+                      //       height: MediaQuery.of(context).size.height,
+                      //       width: MediaQuery.of(context).size.width,
+                      //     ),
+                      //   );
+                      // }
                     }),
               ),
             ],

@@ -29,6 +29,8 @@ class _SignUpState extends State<SignUp> {
         password: controllerPassword.text,
         name: controllerName.text,
       );
+      Auth().currentUser!.updatePhotoURL(
+          "https://firebasestorage.googleapis.com/v0/b/chatbox-3dac1.appspot.com/o/Images%2FProfile-Dark.png?alt=media&token=14a7aa82-5323-4903-90fc-a2738bd42577");
     } on FirebaseAuthException catch (e) {
       setState(() {
         errorMessage = e.message;
@@ -48,7 +50,7 @@ class _SignUpState extends State<SignUp> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-    resizeToAvoidBottomInset: false,
+      resizeToAvoidBottomInset: false,
       appBar: appBar(context),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,

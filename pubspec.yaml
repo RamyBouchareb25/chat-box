@@ -53,6 +53,8 @@ dependencies:
   firebase_storage: ^11.2.5
   flutter_sound: ^9.2.13
   permission_handler: ^10.4.3
+  pull_to_refresh: ^2.0.0
+  shimmer: ^3.0.0
 
 dev_dependencies:
   flutter_test:

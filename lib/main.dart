@@ -108,7 +108,9 @@ class MyApp extends StatelessWidget {
     if (kDebugMode) {
       print("token : \n${token!}");
     }
-    addToken(token);
+    if (Auth().currentUser != null) {
+      addToken(token);
+    }
     return MaterialApp(
         debugShowCheckedModeBanner: false,
         themeMode: ThemeMode.light,

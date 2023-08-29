@@ -134,10 +134,9 @@ class _LoginState extends State<Login> {
                         setState(() {
                           _isLoading = false;
                         });
-                        ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content:
-                                    Text("Log In Failed !, Please Try Again")));
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text(errorMessage ?? "Unknown Error")));
+                        errorMessage = null;
                       }
                     });
                   }
@@ -150,7 +149,9 @@ class _LoginState extends State<Login> {
               ),
             ),
             TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  Auth().resetPass();
+                },
                 child: const Text("Forgot Password?",
                     style: TextStyle(color: primaryColor, fontSize: 15))),
           ],

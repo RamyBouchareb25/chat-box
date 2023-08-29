@@ -40,11 +40,11 @@ class _ConversationState extends State<Conversation> {
   bool isWriting = false;
   String chatBoxImageUrl =
       "https://firebasestorage.googleapis.com/v0/b/chatbox-3dac1.appspot.com/o/Images%2FApp%20icon.png?alt=media&token=d050fd05-8dbe-4393-a55e-2d4d9515218d";
-  Future<HttpsCallableResult> sendMessage(String token) async {
+  Future<HttpsCallableResult> sendMessage(String token, String messsage) async {
     HttpsCallable sendNotif = functions.httpsCallable("sendNotification");
     final resp = sendNotif.call(<String, dynamic>{
       "title": Auth().currentUser!.displayName,
-      "body": messageController.text,
+      "body": messsage,
       "token": token,
       "image": chatBoxImageUrl,
     });
@@ -366,7 +366,13 @@ class _ConversationState extends State<Conversation> {
                       color: black,
                       size: 20,
                     ),
-                    onPressed: () {},
+                    onPressed: () {
+                      // Navigator.push(context, MaterialPageRoute(
+                      //   builder: (context) {
+                      //     return const Test();
+                      //   },
+                      // ));
+                    },
                   ),
                   Expanded(
                     child: TextField(
@@ -406,10 +412,6 @@ class _ConversationState extends State<Conversation> {
                     ),
                     onPressed: () async {
                       if (isWriting) {
-                        for (var token in interlocuter!.token!) {
-                          await sendMessage(token);
-                        }
-
                         firestore
                             .collection("Rooms")
                             .doc(widget.roomId)
@@ -423,7 +425,11 @@ class _ConversationState extends State<Conversation> {
                                     type: "Text",
                                     isRead: false)
                                 .toMap());
+                        var msg = messageController.text;
                         messageController.clear();
+                        for (var token in interlocuter!.token!) {
+                          await sendMessage(token, msg);
+                        }
                         setState(() {
                           isWriting = false;
                         });
