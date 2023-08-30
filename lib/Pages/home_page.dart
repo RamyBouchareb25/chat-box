@@ -5,6 +5,7 @@ import 'package:chat_app/models/global.dart';
 import 'package:chat_app/models/user_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:chat_app/auth.dart';
@@ -52,11 +53,16 @@ class _HomeState extends State<Home> {
   }
 
   final RefreshController _controller = RefreshController();
-
+  bool firstTimeLoading = true;
   Future<void> _onRefresh() async {
     await _getRooms();
     await _getUsers();
-    setState(() {});
+    if (!firstTimeLoading) {
+      setState(() {
+        lastMessages = [];
+      });
+    }
+    firstTimeLoading = false;
     _controller.refreshCompleted();
   }
 
@@ -243,10 +249,20 @@ class _HomeState extends State<Home> {
                                           var msg = MessageData.fromMap(
                                               element.data());
                                           if (msg.isRead == false) {
-                                            msg.id = element.id;
-                                            lastMessages.add(msg);
+                                            var addOrNot = lastMessages.every(
+                                                (element) =>
+                                                    element.id != msg.id);
+                                            addOrNot
+                                                ? lastMessages.add(msg)
+                                                : null;
                                           }
                                         }
+                                      }
+                                      if (kDebugMode) {
+                                        print(lastMessage != null &&
+                                                lastMessage!.message != null
+                                            ? "You: ${lastMessage!.message!.substring(0, lastMessage!.message!.length < messageMaxLength ? lastMessage!.message!.length : messageMaxLength)} ${lastMessage!.message!.length > messageMaxLength ? "..." : ""}"
+                                            : "No Messages Yet");
                                       }
                                       return Container(
                                         color: Colors.white,
@@ -367,8 +383,10 @@ class _HomeState extends State<Home> {
                                                                       user!.uid
                                                                   ? "You: ${lastMessage!.message!.substring(0, lastMessage!.message!.length < messageMaxLength ? lastMessage!.message!.length : messageMaxLength)} ${lastMessage!.message!.length > messageMaxLength ? "..." : ""}"
                                                                   : lastMessage!
-                                                                          .message ??
-                                                                      "No Messages Yet",
+                                                                              .message ==
+                                                                          null
+                                                                      ? "No Messages Yet"
+                                                                      : "${lastMessage!.message!.substring(0, lastMessage!.message!.length < messageMaxLength ? lastMessage!.message!.length : messageMaxLength)} ${lastMessage!.message!.length > messageMaxLength ? "..." : ""}",
                                                           style: TextStyle(
                                                               color: lastMessage!
                                                                               .id ==
@@ -445,9 +463,12 @@ class _HomeState extends State<Home> {
                           ),
                         );
                       } else {
-                        return const Center(
-                            child:
-                                Text("You have No conversations for now X)"));
+                        return Container(
+                          color: Colors.white,
+                          child: const Center(
+                              child:
+                                  Text("You have No conversations for now X)")),
+                        );
                       }
 
                       // } else {
