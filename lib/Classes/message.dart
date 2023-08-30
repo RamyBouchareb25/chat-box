@@ -38,4 +38,9 @@ class MessageData {
       'isRead': isRead,
     };
   }
+
+  @override
+  String toString() {
+    return 'MessageData(id: $id, message: $message, senderId: $senderId, receiverId: $receiverId, timestamp: $timestamp, type: $type, isRead: $isRead)';
+  }
 }

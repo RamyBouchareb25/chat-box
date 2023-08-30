@@ -28,7 +28,7 @@ class _HomeState extends State<Home> {
   FirebaseStorage storage = FirebaseStorage.instance;
   List<UserModel> users = [];
   List<String> urls = [];
-
+  List<List<MessageData>> allMessages = [];
   Future<QuerySnapshot<Map<String, dynamic>>> _getRooms() async {
     return await firestore
         .collection("Rooms")
@@ -57,12 +57,6 @@ class _HomeState extends State<Home> {
   Future<void> _onRefresh() async {
     await _getRooms();
     await _getUsers();
-    if (!firstTimeLoading) {
-      setState(() {
-        lastMessages = [];
-      });
-    }
-    firstTimeLoading = false;
     _controller.refreshCompleted();
   }
 
@@ -72,7 +66,7 @@ class _HomeState extends State<Home> {
   }
 
   MessageData? lastMessage;
-  List<MessageData> lastMessages = [];
+  // List<MessageData> lastMessages = [];
   @override
   void initState() {
     _getUsers().then((value) {
@@ -240,6 +234,7 @@ class _HomeState extends State<Home> {
                                       var finishLoading = snap.hasData;
 
                                       if (finishLoading && finishLoading2) {
+                                        List<MessageData> lastMessages = [];
                                         lastMessage = snap.data!.size == 0
                                             ? MessageData()
                                             : MessageData.fromMap(snap
@@ -257,12 +252,11 @@ class _HomeState extends State<Home> {
                                                 : null;
                                           }
                                         }
+                                        allMessages.add(lastMessages);
                                       }
                                       if (kDebugMode) {
-                                        print(lastMessage != null &&
-                                                lastMessage!.message != null
-                                            ? "You: ${lastMessage!.message!.substring(0, lastMessage!.message!.length < messageMaxLength ? lastMessage!.message!.length : messageMaxLength)} ${lastMessage!.message!.length > messageMaxLength ? "..." : ""}"
-                                            : "No Messages Yet");
+                                        print(
+                                            "tile number $index \nand the lastmessages are ${allMessages.map((e) => e.map((e) => e.message))}");
                                       }
                                       return Container(
                                         color: Colors.white,
@@ -279,10 +273,12 @@ class _HomeState extends State<Home> {
                                                                 (BuildContext
                                                                     context) {
                                                       return Conversation(
-                                                        lastMessages:
-                                                            lastMessages.isEmpty
-                                                                ? <MessageData>[]
-                                                                : lastMessages,
+                                                        lastMessages: allMessages[
+                                                                    index]
+                                                                .isEmpty
+                                                            ? <MessageData>[]
+                                                            : allMessages[
+                                                                index],
                                                         user: users[index],
                                                         roomId: snapshot.data!
                                                             .docs[index].id,
@@ -401,7 +397,8 @@ class _HomeState extends State<Home> {
                                                                   : black,
                                                               fontSize: 15),
                                                         ),
-                                                        lastMessages.isNotEmpty &&
+                                                        allMessages[index]
+                                                                    .isNotEmpty &&
                                                                 lastMessage!
                                                                         .id !=
                                                                     null &&
@@ -419,7 +416,8 @@ class _HomeState extends State<Home> {
                                                                             100)),
                                                                 child: Center(
                                                                   child: Text(
-                                                                    lastMessages
+                                                                    allMessages[
+                                                                            index]
                                                                         .length
                                                                         .toString(),
                                                                     style: const TextStyle(

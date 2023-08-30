@@ -27,6 +27,34 @@ class _SearchPageState extends State<SearchPage> {
     super.initState();
   }
 
+  Future<void> _createRoom(UserModel user) async {
+    final newRoom = await _firestore.collection("Rooms").add({
+      "users": [user.uid, Auth().currentUser!.uid],
+    });
+    final testMessage = await _firestore
+        .collection("Rooms")
+        .doc(newRoom.id)
+        .collection("messages")
+        .add(MessageData(
+          senderId: Auth().currentUser!.uid,
+          timestamp: DateTime.now().toString(),
+        ).toMap());
+    await _firestore
+        .collection("Rooms")
+        .doc(newRoom.id)
+        .collection("messages")
+        .doc(testMessage.id)
+        .delete();
+    Navigator.push(context, MaterialPageRoute(
+      builder: (context) {
+        return Conversation(
+            roomId: newRoom.id,
+            user: user,
+            lastMessages: const <MessageData>[]);
+      },
+    ));
+  }
+
   _updateStream() {
     setState(() {
       _usersStream = _firestore.collection("Users").orderBy("Name").startAt(
@@ -34,6 +62,7 @@ class _SearchPageState extends State<SearchPage> {
     });
   }
 
+  bool isLoading = false;
   @override
   void dispose() {
     _controller.dispose();
@@ -93,75 +122,88 @@ class _SearchPageState extends State<SearchPage> {
             ),
           ),
         ),
-        body: Column(
-          children: [
-            const Padding(
-              padding: EdgeInsets.all(20),
-              child:
-                  Text("People", style: TextStyle(color: black, fontSize: 20)),
-            ),
-            StreamBuilder(
-                stream: _usersStream,
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  }
-                  return Expanded(
-                    child: ListView.builder(
-                      itemCount: snapshot.data!.docs.length,
-                      itemBuilder: (context, index) {
-                        UserModel user = UserModel.fromMap(
-                            snapshot.data!.docs[index].data());
-                        return ListTile(
-                          onTap: () async {
-                            final newRoom =
-                                await _firestore.collection("Rooms").add({
-                              "users": [user.uid, Auth().currentUser!.uid],
-                            });
-                            final testMessage = await _firestore
-                                .collection("Rooms")
-                                .doc(newRoom.id)
-                                .collection("messages")
-                                .add(MessageData(
-                                  senderId: Auth().currentUser!.uid,
-                                  timestamp: DateTime.now().toString(),
-                                ).toMap());
-                            await _firestore
-                                .collection("Rooms")
-                                .doc(newRoom.id)
-                                .collection("messages")
-                                .doc(testMessage.id)
-                                .delete();
-                            Navigator.push(context, MaterialPageRoute(
-                              builder: (context) {
-                                return Conversation(
-                                    roomId: newRoom.id,
-                                    user: user,
-                                    lastMessages: const <MessageData>[]);
-                              },
-                            ));
-                            Navigator.pop(grandContext);
-                          },
-                          leading: const CircleAvatar(
-                            backgroundColor: Colors.transparent,
-                            backgroundImage:
-                                AssetImage("Assets/Profile-Dark.png"),
-                          ),
-                          title: Text(user.name!,
-                              style:
-                                  const TextStyle(color: black, fontSize: 20)),
-                          subtitle: Text(
-                            user.status!,
-                            style: const TextStyle(fontSize: 15),
+        body: !isLoading
+            ? Column(
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Text("People",
+                        style: TextStyle(color: black, fontSize: 20)),
+                  ),
+                  StreamBuilder(
+                      stream: _usersStream,
+                      builder: (context, snapshot) {
+                        if (!snapshot.hasData) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
+                        if (snapshot.data!.docs.isEmpty) {
+                          return const Center(
+                            child: Text("No Users Found"),
+                          );
+                        }
+                        return Expanded(
+                          child: ListView.builder(
+                            itemCount: snapshot.data!.docs.length,
+                            itemBuilder: (context, index) {
+                              UserModel user = UserModel.fromMap(
+                                  snapshot.data!.docs[index].data());
+                              return ListTile(
+                                onTap: () async {
+                                  setState(() {});
+                                  final Room1 = await _firestore
+                                      .collection("Rooms")
+                                      .where("users", isEqualTo: [
+                                    user.uid,
+                                    Auth().currentUser!.uid
+                                  ]).get();
+                                  final Room2 = await _firestore
+                                      .collection("Rooms")
+                                      .where("users", isEqualTo: [
+                                    Auth().currentUser!.uid,
+                                    user.uid
+                                  ]).get();
+                                  final roomExists = Room1.docs.isNotEmpty ||
+                                      Room2.docs.isNotEmpty;
+                                  if (roomExists) {
+                                    Navigator.push(context, MaterialPageRoute(
+                                      builder: (context) {
+                                        return Conversation(
+                                            roomId: Room1.docs.isNotEmpty
+                                                ? Room1.docs.first.id
+                                                : Room2.docs.first.id,
+                                            user: user,
+                                            lastMessages: const <
+                                                MessageData>[]);
+                                      },
+                                    ));
+                                  } else {
+                                    _createRoom(user);
+                                  }
+                                  Navigator.pop(grandContext);
+                                },
+                                leading: const CircleAvatar(
+                                  backgroundColor: Colors.transparent,
+                                  backgroundImage:
+                                      AssetImage("Assets/Profile-Dark.png"),
+                                ),
+                                title: Text(user.name!,
+                                    style: const TextStyle(
+                                        color: black, fontSize: 20)),
+                                subtitle: Text(
+                                  user.status!,
+                                  style: const TextStyle(fontSize: 15),
+                                ),
+                              );
+                            },
                           ),
                         );
-                      },
-                    ),
-                  );
-                })
-          ],
-        ));
+                      })
+                ],
+              )
+            : const Center(
+                child: CircularProgressIndicator(),
+              ));
   }
 }
