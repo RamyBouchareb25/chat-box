@@ -5,7 +5,6 @@ import 'package:chat_app/models/global.dart';
 import 'package:chat_app/models/user_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:chat_app/auth.dart';
@@ -28,7 +27,7 @@ class _HomeState extends State<Home> {
   FirebaseStorage storage = FirebaseStorage.instance;
   List<UserModel> users = [];
   List<String> urls = [];
-  List<List<MessageData>> allMessages = [];
+
   Future<QuerySnapshot<Map<String, dynamic>>> _getRooms() async {
     return await firestore
         .collection("Rooms")
@@ -57,6 +56,12 @@ class _HomeState extends State<Home> {
   Future<void> _onRefresh() async {
     await _getRooms();
     await _getUsers();
+    if (!firstTimeLoading) {
+      setState(() {
+        lastMessages = [];
+      });
+    }
+    firstTimeLoading = false;
     _controller.refreshCompleted();
   }
 
@@ -66,7 +71,7 @@ class _HomeState extends State<Home> {
   }
 
   MessageData? lastMessage;
-  // List<MessageData> lastMessages = [];
+  List<MessageData> lastMessages = [];
   @override
   void initState() {
     _getUsers().then((value) {
@@ -91,6 +96,25 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
+    // firestore.collection("Rooms").get().then((value) {
+    //   for (var element in value.docs) {
+    //     firestore
+    //         .collection("Rooms")
+    //         .doc(element.id)
+    //         .collection("messages")
+    //         .get()
+    //         .then((value) {
+    //       for (var e in value.docs) {
+    //         firestore
+    //             .collection("Rooms")
+    //             .doc(element.id)
+    //             .collection("messages")
+    //             .doc(e.id)
+    //             .update({"messageId": const Uuid().v4()});
+    //       }
+    //     });
+    //   }
+    // });
     // Auth().currentUser!.updatePhotoURL(
     //     "https://firebasestorage.googleapis.com/v0/b/chatbox-3dac1.appspot.com/o/Profile%20Photos%2Fmejpg.jpg?alt=media&token=20625eb2-e272-49b8-bcec-c7e762e4a786");
     return Scaffold(
@@ -110,6 +134,7 @@ class _HomeState extends State<Home> {
                   future: _getRooms(),
                   builder: (context, snapshot) {
                     if (snapshot.hasData) {
+                      _onRefresh();
                       return Container(
                         height: 150,
                         decoration: const BoxDecoration(
@@ -208,6 +233,7 @@ class _HomeState extends State<Home> {
                 child: FutureBuilder(
                     future: _getRooms(),
                     builder: (context, snapshot) {
+                      _onRefresh();
                       // if (snapshot.hasData) {
                       var finishLoading2 = snapshot.hasData;
                       if (!finishLoading2 || snapshot.data!.docs.isNotEmpty) {
@@ -234,7 +260,6 @@ class _HomeState extends State<Home> {
                                       var finishLoading = snap.hasData;
 
                                       if (finishLoading && finishLoading2) {
-                                        List<MessageData> lastMessages = [];
                                         lastMessage = snap.data!.size == 0
                                             ? MessageData()
                                             : MessageData.fromMap(snap
@@ -252,12 +277,8 @@ class _HomeState extends State<Home> {
                                                 : null;
                                           }
                                         }
-                                        allMessages.add(lastMessages);
                                       }
-                                      if (kDebugMode) {
-                                        print(
-                                            "tile number $index \nand the lastmessages are ${allMessages.map((e) => e.map((e) => e.message))}");
-                                      }
+
                                       return Container(
                                         color: Colors.white,
                                         child: Padding(
@@ -272,13 +293,27 @@ class _HomeState extends State<Home> {
                                                             builder:
                                                                 (BuildContext
                                                                     context) {
+                                                      var unReadMessages =
+                                                          <MessageData>[];
+                                                      for (var element
+                                                          in lastMessages) {
+                                                        element.senderId ==
+                                                                    users[index]
+                                                                        .uid &&
+                                                                element.receiverId ==
+                                                                    Auth()
+                                                                        .currentUser!
+                                                                        .uid
+                                                            ? unReadMessages
+                                                                .add(element)
+                                                            : null;
+                                                      }
                                                       return Conversation(
-                                                        lastMessages: allMessages[
-                                                                    index]
-                                                                .isEmpty
-                                                            ? <MessageData>[]
-                                                            : allMessages[
-                                                                index],
+                                                        lastMessages:
+                                                            unReadMessages
+                                                                    .isEmpty
+                                                                ? <MessageData>[]
+                                                                : unReadMessages,
                                                         user: users[index],
                                                         roomId: snapshot.data!
                                                             .docs[index].id,
@@ -397,8 +432,7 @@ class _HomeState extends State<Home> {
                                                                   : black,
                                                               fontSize: 15),
                                                         ),
-                                                        allMessages[index]
-                                                                    .isNotEmpty &&
+                                                        lastMessages.isNotEmpty &&
                                                                 lastMessage!
                                                                         .id !=
                                                                     null &&
@@ -416,8 +450,10 @@ class _HomeState extends State<Home> {
                                                                             100)),
                                                                 child: Center(
                                                                   child: Text(
-                                                                    allMessages[
-                                                                            index]
+                                                                    lastMessages
+                                                                        .map((e) =>
+                                                                            e.senderId ==
+                                                                            users[index].uid)
                                                                         .length
                                                                         .toString(),
                                                                     style: const TextStyle(

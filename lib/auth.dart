@@ -32,7 +32,8 @@ class Auth {
       name: name,
       email: email,
       status: "online",
-      profilePhoto: "",
+      profilePhoto: "https://firebasestorage.googleapis.com/v0/b/chatbox-3dac1.appspot.com/o/Images%2FProfile-Dark.png?alt=media&token=14a7aa82-5323-4903-90fc-a2738bd42577",
+      token: []
     );
     FirebaseFirestore.instance.collection("Users").add(user.toMap());
   }

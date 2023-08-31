@@ -55,6 +55,8 @@ dependencies:
   permission_handler: ^10.4.3
   pull_to_refresh: ^2.0.0
   shimmer: ^3.0.0
+  change_app_package_name: ^1.1.0
+  uuid: ^3.0.7
 
 dev_dependencies:
   flutter_test:

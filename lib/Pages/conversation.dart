@@ -89,14 +89,26 @@ class _ConversationState extends State<Conversation> {
 
     if (widget.lastMessages.isNotEmpty) {
       for (var element in widget.lastMessages) {
-        if (element.senderId != Auth().currentUser!.uid) {
-          firestore
-              .collection("Rooms")
-              .doc(widget.roomId)
-              .collection("messages")
-              .doc(element.id)
-              .update({"isRead": true});
-        }
+        firestore
+            .collection("Rooms")
+            .doc(widget.roomId)
+            .collection("messages")
+            .where("isRead", isEqualTo: false)
+            .get()
+            .then((value) => {
+                  for (var ele in value.docs)
+                    {
+                      if (ele["senderId"] != Auth().currentUser!.uid)
+                        {
+                          firestore
+                              .collection("Rooms")
+                              .doc(widget.roomId)
+                              .collection("messages")
+                              .doc(ele.id)
+                              .update({"isRead": true})
+                        }
+                    }
+                });
       }
     }
   }
@@ -395,7 +407,7 @@ class _ConversationState extends State<Conversation> {
                                       .add(MessageData(
                                               id: widget.roomId,
                                               message: messageController.text,
-                                              receiverId: "",
+                                              receiverId: widget.user.uid,
                                               senderId: Auth().currentUser!.uid,
                                               timestamp:
                                                   DateTime.now().toString(),
