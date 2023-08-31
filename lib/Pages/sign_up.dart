@@ -13,8 +13,8 @@ enum FormTypes {
 }
 
 class SignUp extends StatefulWidget {
-  const SignUp({super.key});
-
+  const SignUp({super.key,required this.token});
+  final String token;
   @override
   State<SignUp> createState() => _SignUpState();
 }
@@ -28,6 +28,7 @@ class _SignUpState extends State<SignUp> {
         email: controllerEMail.text,
         password: controllerPassword.text,
         name: controllerName.text,
+        token: "",
       );
       Auth().currentUser!.updatePhotoURL(
           "https://firebasestorage.googleapis.com/v0/b/chatbox-3dac1.appspot.com/o/Images%2FProfile-Dark.png?alt=media&token=14a7aa82-5323-4903-90fc-a2738bd42577");
@@ -142,7 +143,9 @@ class _SignUpState extends State<SignUp> {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const WidgetTree()));
+                          builder: (context) => WidgetTree(
+                                token: widget.token,
+                              )));
                 });
               }
             },

@@ -8,7 +8,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:chat_app/auth.dart';
 
 class Login extends StatefulWidget {
-  const Login({super.key});
+  const Login({super.key,required this.token});
+  final String token; 
   @override
   State<Login> createState() => _LoginState();
 }
@@ -69,7 +70,7 @@ class _LoginState extends State<Login> {
                 ),
               ),
             ),
-            thirdPartyConnect(black, context),
+            thirdPartyConnect(black, context,widget.token),
             Image.asset("Assets/OrDark.png"),
             Form(
                 key: formkey,
@@ -126,7 +127,7 @@ class _LoginState extends State<Login> {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => const WidgetTree()));
+                                builder: (context) => WidgetTree(token: widget.token,)));
                       } else {
                         if (kDebugMode) {
                           print(errorMessage);

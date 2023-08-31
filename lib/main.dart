@@ -71,7 +71,7 @@ Future<void> main() async {
   });
 
   runApp(MyApp(
-    token: token,
+    token: token!,
   ));
 }
 
@@ -101,12 +101,12 @@ Future<void> addToken(String? token) async {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key, required this.token});
-  final String? token;
+  final String token;
   // This widget is the root of the application.
   @override
   Widget build(BuildContext context) {
     if (kDebugMode) {
-      print("token : \n${token!}");
+      print("token : \n${token}");
     }
     if (Auth().currentUser != null) {
       addToken(token);
@@ -132,6 +132,6 @@ class MyApp extends StatelessWidget {
           ),
           brightness: Brightness.dark,
         ),
-        home: const WidgetTree());
+        home: WidgetTree(token: token,));
   }
 }

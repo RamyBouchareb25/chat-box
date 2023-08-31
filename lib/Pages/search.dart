@@ -27,7 +27,7 @@ class _SearchPageState extends State<SearchPage> {
     super.initState();
   }
 
-  Future<void> _createRoom(UserModel user) async {
+  Future<void> _createRoom(UserModel user, BuildContext ctx) async {
     final newRoom = await _firestore.collection("Rooms").add({
       "users": [user.uid, Auth().currentUser!.uid],
     });
@@ -53,6 +53,7 @@ class _SearchPageState extends State<SearchPage> {
             lastMessages: const <MessageData>[]);
       },
     ));
+    Navigator.pop(ctx);
   }
 
   _updateStream() {
@@ -178,10 +179,10 @@ class _SearchPageState extends State<SearchPage> {
                                                 MessageData>[]);
                                       },
                                     ));
+                                    Navigator.pop(grandContext);
                                   } else {
-                                    _createRoom(user);
+                                    _createRoom(user, grandContext);
                                   }
-                                  Navigator.pop(grandContext);
                                 },
                                 leading: const CircleAvatar(
                                   backgroundColor: Colors.transparent,

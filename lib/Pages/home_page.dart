@@ -27,7 +27,6 @@ class _HomeState extends State<Home> {
   FirebaseStorage storage = FirebaseStorage.instance;
   List<UserModel> users = [];
   List<String> urls = [];
-
   Future<QuerySnapshot<Map<String, dynamic>>> _getRooms() async {
     return await firestore
         .collection("Rooms")
@@ -54,14 +53,24 @@ class _HomeState extends State<Home> {
   final RefreshController _controller = RefreshController();
   bool firstTimeLoading = true;
   Future<void> _onRefresh() async {
-    await _getRooms();
-    await _getUsers();
-    if (!firstTimeLoading) {
-      setState(() {
-        lastMessages = [];
-      });
+    var value = await _getUsers();
+    var snapshot = await _getRooms();
+    for (var index = 0; index < snapshot.docs.length; index++) {
+      for (var aUser in value.docs) {
+        UserModel userNow = UserModel.fromMap(aUser.data());
+        if ((userNow.uid == snapshot.docs[index].data()["users"][0] ||
+                aUser.data()["UserId"] ==
+                    snapshot.docs[index].data()["users"][1]) &&
+            userNow.uid != user!.uid) {
+          users.add(userNow);
+        }
+      }
+    }
+    if (!firstTimeLoading && context.mounted) {
+      lastMessages = [];
     }
     firstTimeLoading = false;
+    setState(() {});
     _controller.refreshCompleted();
   }
 
@@ -87,8 +96,8 @@ class _HomeState extends State<Home> {
             }
           }
         }
-        _onRefresh();
       });
+      _onRefresh();
     });
 
     super.initState();
@@ -134,7 +143,6 @@ class _HomeState extends State<Home> {
                   future: _getRooms(),
                   builder: (context, snapshot) {
                     if (snapshot.hasData) {
-                      _onRefresh();
                       return Container(
                         height: 150,
                         decoration: const BoxDecoration(
@@ -233,7 +241,7 @@ class _HomeState extends State<Home> {
                 child: FutureBuilder(
                     future: _getRooms(),
                     builder: (context, snapshot) {
-                      _onRefresh();
+                      // _onRefresh();
                       // if (snapshot.hasData) {
                       var finishLoading2 = snapshot.hasData;
                       if (!finishLoading2 || snapshot.data!.docs.isNotEmpty) {
@@ -278,7 +286,10 @@ class _HomeState extends State<Home> {
                                           }
                                         }
                                       }
-
+                                      lastMessages
+                                          .map((e) =>
+                                              e.senderId == users[index].uid)
+                                          .length;
                                       return Container(
                                         color: Colors.white,
                                         child: Padding(

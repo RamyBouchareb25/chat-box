@@ -27,7 +27,6 @@ AppBar appBar(BuildContext context) {
   );
 }
 
-
 Widget bottomNavBar({selectedPage, required BuildContext context}) {
   return BottomNavigationBar(
     type: BottomNavigationBarType.fixed,
@@ -78,7 +77,7 @@ Widget bottomNavBar({selectedPage, required BuildContext context}) {
   );
 }
 
-Widget thirdPartyConnect(Color stroke, BuildContext context) {
+Widget thirdPartyConnect(Color stroke, BuildContext context, String token) {
   return Padding(
       padding: const EdgeInsets.only(left: 40, right: 40),
       child: Row(
@@ -99,11 +98,13 @@ Widget thirdPartyConnect(Color stroke, BuildContext context) {
             heroTag: "Google",
             backgroundColor: Colors.transparent,
             onPressed: () {
-              AuthGoogle().signInWithGoogle().then((value) => {
+              AuthGoogle().signInWithGoogle(token: token).then((value) => {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const WidgetTree()))
+                            builder: (context) => WidgetTree(
+                                  token: token,
+                                )))
                   });
             },
             shape: RoundedRectangleBorder(

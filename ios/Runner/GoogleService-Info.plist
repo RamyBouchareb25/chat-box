@@ -3,9 +3,11 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>502679206932-ceu8vrnkihi1odmhesua4pg5b3686mgn.apps.googleusercontent.com</string>
+	<string>502679206932-huchplre9sv3daidhvv1il14df43danl.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.502679206932-ceu8vrnkihi1odmhesua4pg5b3686mgn</string>
+	<string>com.googleusercontent.apps.502679206932-huchplre9sv3daidhvv1il14df43danl</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>502679206932-a3m9ubb2evdf9rdqptf5q3tu0un71s1d.apps.googleusercontent.com</string>
 	<key>API_KEY</key>
 	<string>AIzaSyD-0vh7mSLvd85Rl6QawBX6BtiAEstAAWE</string>
 	<key>GCM_SENDER_ID</key>
@@ -13,7 +15,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.example.chatApp</string>
+	<string>com.bouchareb.chatbox</string>
 	<key>PROJECT_ID</key>
 	<string>chatbox-3dac1</string>
 	<key>STORAGE_BUCKET</key>
@@ -29,6 +31,8 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:502679206932:ios:4c1a899c63bff07daffb01</string>
+	<string>1:502679206932:ios:d291ce964b962a08affb01</string>
+	<key>DATABASE_URL</key>
+	<string>https://chatbox-3dac1-default-rtdb.europe-west1.firebasedatabase.app</string>
 </dict>
 </plist>

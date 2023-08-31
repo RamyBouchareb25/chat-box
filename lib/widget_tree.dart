@@ -5,8 +5,8 @@ import 'package:chat_app/auth.dart';
 import 'package:chat_app/Pages/home_page.dart';
 
 class WidgetTree extends StatefulWidget {
-  const WidgetTree({super.key});
-
+  const WidgetTree({super.key,required this.token});
+  final String token;
   @override
   State<WidgetTree> createState() => _WidgetTreeState();
 }
@@ -63,7 +63,7 @@ class _WidgetTreeState extends State<WidgetTree> with WidgetsBindingObserver {
             });
             return const Home();
           } else {
-            return const Start();
+            return Start( token: widget.token,);
           }
         } else {
           return Scaffold(
