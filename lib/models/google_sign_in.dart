@@ -24,7 +24,13 @@ class AuthGoogle {
         profilePhoto: userCred.user!.photoURL ??
             "https://firebasestorage.googleapis.com/v0/b/chatbox-3dac1.appspot.com/o/Images%2FProfile-Dark.png?alt=media&token=14a7aa82-5323-4903-90fc-a2738bd42577",
         token: [token]);
-    await FirebaseFirestore.instance.collection("Users").add(userModel.toMap());
+    var value = await FirebaseFirestore.instance
+        .collection("Users")
+        .where("UserId", isEqualTo: userCred.user!.uid)
+        .get();
+    if (value.docs.isEmpty) {
+      FirebaseFirestore.instance.collection("Users").add(userModel.toMap());
+    }
     return userCred;
   }
 }

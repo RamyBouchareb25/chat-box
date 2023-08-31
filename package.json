@@ -2,5 +2,8 @@
   "devDependencies": {
     "@types/node": "^20.4.9",
     "tslib": "^2.6.1"
+  },
+  "dependencies": {
+    "@elastic/elasticsearch": "^8.9.0"
   }
 }

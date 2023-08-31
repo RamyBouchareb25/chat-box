@@ -184,10 +184,10 @@ class _SearchPageState extends State<SearchPage> {
                                     _createRoom(user, grandContext);
                                   }
                                 },
-                                leading: const CircleAvatar(
+                                leading: CircleAvatar(
                                   backgroundColor: Colors.transparent,
                                   backgroundImage:
-                                      AssetImage("Assets/Profile-Dark.png"),
+                                      NetworkImage(user.profilePhoto!),
                                 ),
                                 title: Text(user.name!,
                                     style: const TextStyle(

@@ -4,7 +4,7 @@ import 'package:chat_app/models/global.dart';
 import 'package:flutter/material.dart';
 
 class Start extends StatelessWidget {
-  const Start({super.key,required this.token});
+  const Start({super.key, required this.token});
   final String token;
   @override
   Widget build(BuildContext context) {
@@ -44,7 +44,7 @@ class Start extends StatelessWidget {
                   "Our chat app is the perfect way to stay connected with friends and family.",
                   style: TextStyle(color: grey, fontSize: 20),
                 ),
-                thirdPartyConnect(Colors.white, context,token),
+                thirdPartyConnect(Colors.white, context, token),
                 Image.asset("Assets/Or.png"),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
@@ -63,7 +63,9 @@ class Start extends StatelessWidget {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => SignUp(token: token,)));
+                            builder: (context) => SignUp(
+                                  token: token,
+                                )));
                   },
                   child: const Text("sign up with mail"),
                 ),
@@ -79,7 +81,7 @@ class Start extends StatelessWidget {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => Login(token:token)));
+                                builder: (context) => Login(token: token)));
                       },
                       child: const Text(
                         "Log in",
