@@ -79,4 +79,3 @@ If you encounter any bugs or have suggestions for improvements, please [open an 
 Thank you for checking out ChatBox! We hope this app provides you with an excellent platform for seamless communication and collaboration. If you have any questions or need assistance, feel free to reach out to us.
 
 Happy chatting! 😄📱
-```
