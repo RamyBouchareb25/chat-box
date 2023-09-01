@@ -1,3 +1,5 @@
+Certainly! Here's the updated markdown file with the information about using Elastic Search for searching contacts:
+
 # ChatBox - Flutter and Firebase Chat App
 
 ![ChatBox Banner](Assets/Thumb.png)
@@ -6,11 +8,12 @@ ChatBox is a real-time chat application built using Flutter and Firebase that al
 
 ## Features
 
-- User authentication: Users can sign up and log in securely to access the chat functionalities.
-- Real-time messaging: Users can send and receive messages in real-time, creating a smooth chat experience.
-- Group chat: ChatBox supports group chat functionality, allowing users to create and join chat rooms.
-- Image sharing: Users can share images within the chat rooms, making conversations more engaging.
-- Push notifications: Users receive push notifications for new messages even when the app is in the background.
+- **User authentication:** Users can sign up and log in securely to access the chat functionalities.
+- **Real-time messaging:** Users can send and receive messages in real-time, creating a smooth chat experience.
+- **Group chat:** ChatBox supports group chat functionality, allowing users to create and join chat rooms.
+- **Image sharing:** Users can share images within the chat rooms, making conversations more engaging.
+- **Push notifications:** Users receive push notifications for new messages even when the app is in the background.
+- **Contact search:** Utilizes Elastic Search for efficient searching and retrieval of contacts.
 
 ## Screenshots
 
@@ -21,9 +24,8 @@ ChatBox is a real-time chat application built using Flutter and Firebase that al
 1. Clone the repository to your local machine using the following command:
 
 ```bash
-git clone https://github.com/your-username/chatbox.git
+git clone https://github.com/RamyBouchareb25/chat-box
 ```
-
 2. Make sure you have Flutter and Dart installed on your development environment.
 
 3. Install the required packages by running:
@@ -71,10 +73,7 @@ We welcome contributions to improve ChatBox. To contribute, follow these steps:
 
 If you encounter any bugs or have suggestions for improvements, please [open an issue](https://github.com/your-username/chatbox/issues) on GitHub.
 
-<!-- ## License 
 
-This project is licensed under the [MIT License](LICENSE).
--->
 ---
 
 Thank you for checking out ChatBox! We hope this app provides you with an excellent platform for seamless communication and collaboration. If you have any questions or need assistance, feel free to reach out to us.
