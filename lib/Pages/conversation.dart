@@ -13,6 +13,7 @@ import 'package:timeago/timeago.dart' as timeago;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:uuid/uuid.dart';
 
 class Conversation extends StatefulWidget {
   const Conversation(
@@ -407,6 +408,7 @@ class _ConversationState extends State<Conversation> {
                                       .add(MessageData(
                                               id: widget.roomId,
                                               message: messageController.text,
+                                              messageId: const Uuid().v4(),
                                               receiverId: widget.user.uid,
                                               senderId: Auth().currentUser!.uid,
                                               timestamp:

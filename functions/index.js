@@ -9,6 +9,7 @@
 
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
+const { Client } = require('@elastic/elasticsearch');
 // Create and deploy your first functions
 // https://firebase.google.com/docs/functions/get-started
 
@@ -24,9 +25,6 @@ admin.initializeApp();
 const fcm = admin.messaging();
 
 
-exports.checkHealth = functions.https.onCall(async (data, context) => {
-  return "The function is online";
-});
 
 exports.sendNotification = functions.https.onCall(async (data, context) => {
   const title = data.title;
@@ -57,22 +55,72 @@ exports.sendNotification = functions.https.onCall(async (data, context) => {
   }
 });
 
-exports.notifySubscribers = functions.https.onCall(async (data, _) => {
 
-    try {
-        const multiCastMessage = {
-            notification: {
-                title: data.messageTitle,
-                body: data.messageBody
-            },
-            tokens: data.targetDevices
-        }
-
-        await fcm.sendEachForMulticast(multiCastMessage);
-
-        return true;
-
-    } catch (ex) {
-        return ex;
+  const elasticClient = new Client({
+    cloud: {
+      id: 'ChatBox:ZXVyb3BlLXdlc3QxLmdjcC5jbG91ZC5lcy5pbyQ5OGUzZjFjZDk5ZDU0MDdhYWIwMDIwMDAzNWRiNmUwOCQzMDY2YmUyMmI4OTE0OTI1ODhiNmE5YWMyZGMwNzkwOA==',
+    },
+    auth: {
+      apiKey : 'Y3VVdVRvb0IwZGh4RUV2M2piRno6RDRjNEdweGhUZWlVWUo1Y2I1ZFh5dw=='
     }
-});
+  })
+
+exports.indexUsersToElasticsearch = functions.firestore
+      .document('Users/{userId}')
+      .onCreate(async (snap, context) => {
+        const documentId = context.params.userId;
+        const userData = snap.data();
+
+        const indexParams = {
+          index: 'search-users',
+          body: {
+            // Customize the document structure based on your needs
+            documentId: documentId,
+            userId: userData.userId,
+            name: userData.name,
+            email: userData.email,
+            profilePicture: userData.profilePicture,
+            // ...
+          },
+        };
+
+        try {
+          await elasticClient.index(indexParams);
+          console.log('Document indexed in Elasticsearch');
+        } catch (error) {
+          console.error('Error indexing document:', error);
+        }
+      });
+
+exports.indexMessageToElasticsearch = functions.firestore
+    .document('Rooms/{roomId}/messages/{messageId}')
+    .onCreate(async (snap, context) => {
+        const roomId = context.params.roomId;
+        const messageId = context.params.messageId;
+        const messageData = snap.data();
+
+
+
+        const indexParams = {
+            index: 'search-messages',
+            body: {
+                // Customize the document structure based on your needs
+                roomId: roomId,
+                messageId: messageId,
+                message: messageData.message,
+                senderId: messageData.senderId,
+                receiverId: messageData.receiverId,
+                timestamp: messageData.timestamp,
+                type: messageData.type,
+                isRead: messageData.isRead,
+                // ...
+            },
+        };
+
+        try {
+            await elasticClient.index(indexParams);
+            console.log('Document indexed in Elasticsearch');
+        } catch (error) {
+            console.error('Error indexing document:', error);
+        }
+    });
