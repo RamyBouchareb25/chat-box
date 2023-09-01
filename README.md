@@ -25,7 +25,7 @@ ChatBox is a real-time chat application built using Flutter and Firebase that al
 
 ```bash
 git clone [https://github.com/your-username/chatbox.git](https://github.com/RamyBouchareb25/chat-box)
-
+```
 2. Make sure you have Flutter and Dart installed on your development environment.
 
 3. Install the required packages by running:
