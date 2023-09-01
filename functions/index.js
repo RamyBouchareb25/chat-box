@@ -76,10 +76,9 @@ exports.indexUsersToElasticsearch = functions.firestore
           body: {
             // Customize the document structure based on your needs
             documentId: documentId,
-            userId: userData.userId,
-            name: userData.name,
-            email: userData.email,
-            profilePicture: userData.profilePicture,
+            UserId: userData.UserId,
+            Name: userData.Name,
+            email: userData['E-Mail'],
             // ...
           },
         };
@@ -91,6 +90,39 @@ exports.indexUsersToElasticsearch = functions.firestore
           console.error('Error indexing document:', error);
         }
       });
+
+      exports.indexUsersExistsToElasticsearch = functions.https.onRequest(async (req, res) => {
+                const collectionRef = admin.firestore().collection('Users');
+                const querySnapshot = await collectionRef.get();
+
+                const promises = querySnapshot.docs.map(async (doc) => {
+                  const documentId = doc.id;
+                  const userData = doc.data();
+
+                  const indexParams = {
+                    index: 'search-users',
+                    body: {
+                      // Customize the document structure based on your needs
+                      documentId: documentId,
+                      UserId: userData.UserId,
+                      Name: userData.Name,
+                      email: userData['E-Mail'],
+                      // ...
+                    },
+                  };
+                  return elasticClient.index(indexParams);
+                });
+                try {
+                  await Promise.all(promises);
+                  var okResponse = 'All documents have been indexed in Elasticsearch';
+                  console.log(okResponse);
+                  res.status(200).send(okResponse);
+                } catch (error) {
+                  console.error('Error indexing documents:', error);
+                  res.status(500).send('Error indexing documents:' + error);
+                }
+                });
+
 
 exports.indexMessageToElasticsearch = functions.firestore
     .document('Rooms/{roomId}/messages/{messageId}')

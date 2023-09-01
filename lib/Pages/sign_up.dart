@@ -13,7 +13,7 @@ enum FormTypes {
 }
 
 class SignUp extends StatefulWidget {
-  const SignUp({super.key,required this.token});
+  const SignUp({super.key, required this.token});
   final String token;
   @override
   State<SignUp> createState() => _SignUpState();
@@ -30,7 +30,7 @@ class _SignUpState extends State<SignUp> {
         name: controllerName.text,
         token: "",
       );
-      Auth().currentUser!.updatePhotoURL(
+      await Auth().currentUser!.updatePhotoURL(
           "https://firebasestorage.googleapis.com/v0/b/chatbox-3dac1.appspot.com/o/Images%2FProfile-Dark.png?alt=media&token=14a7aa82-5323-4903-90fc-a2738bd42577");
     } on FirebaseAuthException catch (e) {
       setState(() {
@@ -47,7 +47,7 @@ class _SignUpState extends State<SignUp> {
 
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   bool _isFormValid = false;
-  final bool _isLoading = false;
+  bool _isLoading = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -139,13 +139,26 @@ class _SignUpState extends State<SignUp> {
                     borderRadius: BorderRadius.circular(15))),
             onPressed: () {
               if (formKey.currentState!.validate()) {
+                setState(() {
+                  _isLoading = true;
+                });
                 createUserWithEmailAndPassword().then((value) {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => WidgetTree(
-                                token: widget.token,
-                              )));
+                  if (errorMessage == null) {
+                    Navigator.popUntil(context, (route) => route.isCurrent);
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => WidgetTree(
+                                  token: widget.token,
+                                )));
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text(errorMessage ?? "Unknown Error")));
+                    errorMessage = null;
+                  }
+                });
+                setState(() {
+                  _isLoading = false;
                 });
               }
             },
