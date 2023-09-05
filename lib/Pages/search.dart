@@ -2,7 +2,6 @@ import 'package:chat_app/Classes/message.dart';
 import 'package:chat_app/Pages/conversation.dart';
 import 'package:chat_app/auth.dart';
 import 'package:chat_app/models/global.dart';
-import 'package:chat_app/models/icomoon_icons.dart';
 import 'package:chat_app/models/user_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -74,55 +73,71 @@ class _SearchPageState extends State<SearchPage> {
   Widget build(BuildContext grandContext) {
     return Scaffold(
         appBar: AppBar(
-          automaticallyImplyLeading: false,
           backgroundColor: Colors.white,
-          title: Container(
-            decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(10)),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Padding(
-                  padding: EdgeInsets.only(left: 20),
-                  child: Icon(
-                    Icomoon.search,
-                    color: black,
-                  ),
-                ),
-                const SizedBox(
-                  width: 10,
-                ),
-                SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.65,
-                    child: TextField(
-                      onChanged: (value) {
-                        setState(() {
-                          _updateStream();
-                        });
-                      },
-                      controller: _controller,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Colors.grey[200],
-                        hintText: "Search",
-                        hintStyle: const TextStyle(color: black),
-                        border: InputBorder.none,
-                      ),
-                    )),
-                IconButton(
-                  onPressed: () {
-                    _controller.clear();
-                  },
-                  icon: const Icon(
-                    Icons.close,
-                    color: black,
-                  ),
-                )
-              ],
-            ),
-          ),
+          automaticallyImplyLeading: false,
+          title: searchBar(
+              controller: _controller,
+              width: 400,
+              onSuffixTap: () {
+                // _controller.clear();
+                print("tap");
+              },
+              onSubmitted: (value) {
+                setState(() {
+                  _updateStream();
+                });
+              }),
         ),
+        // appBar: AppBar(
+        //   automaticallyImplyLeading: false,
+        //   backgroundColor: Colors.white,
+        //   title: Container(
+        //     decoration: BoxDecoration(
+        //         color: Colors.grey[200],
+        //         borderRadius: BorderRadius.circular(10)),
+        //     child: Row(
+        //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        //       children: [
+        //         const Padding(
+        //           padding: EdgeInsets.only(left: 20),
+        //           child: Icon(
+        //             Icomoon.search,
+        //             color: black,
+        //           ),
+        //         ),
+        //         const SizedBox(
+        //           width: 10,
+        //         ),
+        //         SizedBox(
+        //             width: MediaQuery.of(context).size.width * 0.65,
+        //             child: TextField(
+        //               onChanged: (value) {
+        //                 setState(() {
+        //                   _updateStream();
+        //                 });
+        //               },
+        //               controller: _controller,
+        //               decoration: InputDecoration(
+        //                 filled: true,
+        //                 fillColor: Colors.grey[200],
+        //                 hintText: "Search",
+        //                 hintStyle: const TextStyle(color: black),
+        //                 border: InputBorder.none,
+        //               ),
+        //             )),
+        //         IconButton(
+        //           onPressed: () {
+        //             _controller.clear();
+        //           },
+        //           icon: const Icon(
+        //             Icons.close,
+        //             color: black,
+        //           ),
+        //         )
+        //       ],
+        //     ),
+        //   ),
+        // ),
         body: !isLoading
             ? Column(
                 children: [

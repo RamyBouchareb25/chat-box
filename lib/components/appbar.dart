@@ -2,14 +2,14 @@ import 'package:chat_app/Pages/search.dart';
 import 'package:chat_app/auth.dart';
 import 'package:chat_app/models/global.dart';
 import 'package:flutter/material.dart';
-import 'package:chat_app/models/icomoon_icons.dart';
 
 class DefaultAppBar extends StatefulWidget implements PreferredSizeWidget {
   const DefaultAppBar(
-      {super.key, required this.title, required this.context, this.image});
+      {super.key, required this.title, required this.context, this.image,required this.controller});
   final String title;
   final BuildContext context;
   final ImageProvider? image;
+  final TextEditingController controller;
   @override
   Size get preferredSize => Size(MediaQuery.of(context).size.width,
       MediaQuery.of(context).size.height * 0.1);
@@ -60,21 +60,32 @@ class _DefaultAppBarState extends State<DefaultAppBar> {
       ],
       leading: Padding(
         padding: const EdgeInsets.only(left: 10, top: 10),
-        child: Container(
-          decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(100),
-              border: Border.all(color: grey, width: 1)),
-          child: IconButton(
-            icon: const Icon(Icomoon.search),
-            onPressed: () {
+        // child: Container(
+        //   decoration: BoxDecoration(
+        //       borderRadius: BorderRadius.circular(100),
+        //       border: Border.all(color: grey, width: 1)),
+        //   child: IconButton(
+        //     icon: const Icon(Icomoon.search),
+        //     onPressed: () {
+        //       Navigator.push(context, MaterialPageRoute(
+        //         builder: (context) {
+        //           return const SearchPage();
+        //         },
+        //       ));
+        //     },
+        //   ),
+        // ),
+        child: searchBar(
+            controller: widget.controller,
+            width: 400,
+            onSuffixTap: () {
               Navigator.push(context, MaterialPageRoute(
                 builder: (context) {
                   return const SearchPage();
                 },
               ));
             },
-          ),
-        ),
+            onSubmitted: (value) {}),
       ),
       centerTitle: true,
       title: Padding(

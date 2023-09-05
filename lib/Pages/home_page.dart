@@ -30,6 +30,7 @@ class _HomeState extends State<Home> {
   Future<QuerySnapshot<Map<String, dynamic>>> _getRooms() async {
     return await firestore
         .collection("Rooms")
+        .orderBy("LastMsgTime", descending: true)
         .where("users", arrayContains: user!.uid)
         .get();
   }
@@ -55,22 +56,25 @@ class _HomeState extends State<Home> {
   Future<void> _onRefresh() async {
     var value = await _getUsers();
     var snapshot = await _getRooms();
-    for (var index = 0; index < snapshot.docs.length; index++) {
-      for (var aUser in value.docs) {
-        UserModel userNow = UserModel.fromMap(aUser.data());
-        if ((userNow.uid == snapshot.docs[index].data()["users"][0] ||
-                aUser.data()["UserId"] ==
-                    snapshot.docs[index].data()["users"][1]) &&
-            userNow.uid != user!.uid) {
-          users.add(userNow);
+    setState(() {
+      users = [];
+      for (var index = 0; index < snapshot.docs.length; index++) {
+        for (var aUser in value.docs) {
+          UserModel userNow = UserModel.fromMap(aUser.data());
+          if ((userNow.uid == snapshot.docs[index].data()["users"][0] ||
+                  aUser.data()["UserId"] ==
+                      snapshot.docs[index].data()["users"][1]) &&
+              userNow.uid != user!.uid) {
+            users.add(userNow);
+          }
         }
       }
-    }
+    });
     if (!firstTimeLoading && context.mounted) {
       lastMessages = [];
     }
     firstTimeLoading = false;
-    setState(() {});
+
     _controller.refreshCompleted();
   }
 
@@ -111,15 +115,15 @@ class _HomeState extends State<Home> {
     //         .collection("Rooms")
     //         .doc(element.id)
     //         .collection("messages")
+    //         .orderBy("timestamp", descending: true)
     //         .get()
     //         .then((value) {
-    //       for (var e in value.docs) {
+    //       if (value.docs.isNotEmpty) {
+    //         var e = value.docs[0];
     //         firestore
     //             .collection("Rooms")
-    //             .doc(element.id)
-    //             .collection("messages")
-    //             .doc(e.id)
-    //             .update({"messageId": const Uuid().v4()});
+    //             .doc(e['id'])
+    //             .update({"LastMsgTime": e.data()["timestamp"]});
     //       }
     //     });
     //   }
@@ -130,9 +134,11 @@ class _HomeState extends State<Home> {
         resizeToAvoidBottomInset: true,
         backgroundColor: black,
         appBar: DefaultAppBar(
+          controller: TextEditingController(),
           title: "Home",
           context: context,
-          image: NetworkImage(user!.photoURL!),
+          image: NetworkImage(user!.photoURL ??
+              "https://firebasestorage.googleapis.com/v0/b/chatbox-3dac1.appspot.com/o/Images%2FProfile-Dark.png?alt=media&token=14a7aa82-5323-4903-90fc-a2738bd42577"),
         ),
         body: SafeArea(
           top: true,

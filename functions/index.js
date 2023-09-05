@@ -74,12 +74,10 @@ exports.indexUsersToElasticsearch = functions.firestore
         const indexParams = {
           index: 'search-users',
           body: {
-            // Customize the document structure based on your needs
             documentId: documentId,
             UserId: userData.UserId,
             Name: userData.Name,
             email: userData['E-Mail'],
-            // ...
           },
         };
 
@@ -102,12 +100,10 @@ exports.indexUsersToElasticsearch = functions.firestore
                   const indexParams = {
                     index: 'search-users',
                     body: {
-                      // Customize the document structure based on your needs
                       documentId: documentId,
                       UserId: userData.UserId,
                       Name: userData.Name,
                       email: userData['E-Mail'],
-                      // ...
                     },
                   };
                   return elasticClient.index(indexParams);
@@ -136,7 +132,6 @@ exports.indexMessageToElasticsearch = functions.firestore
         const indexParams = {
             index: 'search-messages',
             body: {
-                // Customize the document structure based on your needs
                 roomId: roomId,
                 messageId: messageId,
                 message: messageData.message,
@@ -145,7 +140,6 @@ exports.indexMessageToElasticsearch = functions.firestore
                 timestamp: messageData.timestamp,
                 type: messageData.type,
                 isRead: messageData.isRead,
-                // ...
             },
         };
 

@@ -13,7 +13,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: DefaultAppBar(title: "Settings", context: context),
+      appBar: DefaultAppBar(title: "Settings", context: context,controller: TextEditingController(),),
       body: const Center(
         child: Text("Settings"),
       ),

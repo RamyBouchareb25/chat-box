@@ -57,6 +57,7 @@ dependencies:
   shimmer: ^3.0.0
   change_app_package_name: ^1.1.0
   uuid: ^3.0.7
+  anim_search_bar: ^2.0.3
 
 dev_dependencies:
   flutter_test:

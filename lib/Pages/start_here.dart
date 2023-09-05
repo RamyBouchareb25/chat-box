@@ -63,7 +63,7 @@ class Start extends StatelessWidget {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => SignUp(
+                            builder: (ctx) => SignUp(
                                   token: token,
                                 )));
                   },
@@ -81,7 +81,7 @@ class Start extends StatelessWidget {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => Login(token: token)));
+                                builder: (ctx) => Login(token: token)));
                       },
                       child: const Text(
                         "Log in",

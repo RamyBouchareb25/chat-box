@@ -52,6 +52,40 @@ class _ConversationState extends State<Conversation> {
     return await resp;
   }
 
+  void send() async {
+    if (isWriting) {
+      var now = DateTime.now().toString();
+      firestore
+          .collection("Rooms")
+          .doc(widget.roomId)
+          .collection("messages")
+          .add(MessageData(
+                  id: widget.roomId,
+                  message: messageController.text,
+                  messageId: const Uuid().v4(),
+                  receiverId: widget.user.uid,
+                  senderId: Auth().currentUser!.uid,
+                  timestamp: now,
+                  type: "Text",
+                  isRead: false)
+              .toMap());
+      firestore
+          .collection("Rooms")
+          .doc(widget.roomId)
+          .update({"LastMsgTime": now});
+      var msg = messageController.text;
+      messageController.clear();
+      for (var token in interlocuter!.token!) {
+        await sendMessage(token, msg);
+      }
+      if (context.mounted) {
+        setState(() {
+          isWriting = false;
+        });
+      }
+    }
+  }
+
   Future<void> initRecord() async {
     final status = await Permission.microphone.request();
     if (status.isDenied) {
@@ -399,33 +433,7 @@ class _ConversationState extends State<Conversation> {
                                   size: !isWriting ? 20 : 15,
                                 ),
                               ),
-                              onPressed: () async {
-                                if (isWriting) {
-                                  firestore
-                                      .collection("Rooms")
-                                      .doc(widget.roomId)
-                                      .collection("messages")
-                                      .add(MessageData(
-                                              id: widget.roomId,
-                                              message: messageController.text,
-                                              messageId: const Uuid().v4(),
-                                              receiverId: widget.user.uid,
-                                              senderId: Auth().currentUser!.uid,
-                                              timestamp:
-                                                  DateTime.now().toString(),
-                                              type: "Text",
-                                              isRead: false)
-                                          .toMap());
-                                  var msg = messageController.text;
-                                  messageController.clear();
-                                  for (var token in interlocuter!.token!) {
-                                    await sendMessage(token, msg);
-                                  }
-                                  setState(() {
-                                    isWriting = false;
-                                  });
-                                }
-                              },
+                              onPressed: send,
                             ),
                             !isWriting
                                 ? IconButton(
@@ -521,32 +529,7 @@ class _ConversationState extends State<Conversation> {
                                   size: !isWriting ? 20 : 15,
                                 ),
                               ),
-                              onPressed: () async {
-                                if (isWriting) {
-                                  firestore
-                                      .collection("Rooms")
-                                      .doc(widget.roomId)
-                                      .collection("messages")
-                                      .add(MessageData(
-                                              id: widget.roomId,
-                                              message: messageController.text,
-                                              receiverId: "",
-                                              senderId: Auth().currentUser!.uid,
-                                              timestamp:
-                                                  DateTime.now().toString(),
-                                              type: "Text",
-                                              isRead: false)
-                                          .toMap());
-                                  var msg = messageController.text;
-                                  messageController.clear();
-                                  for (var token in interlocuter!.token!) {
-                                    await sendMessage(token, msg);
-                                  }
-                                  setState(() {
-                                    isWriting = false;
-                                  });
-                                }
-                              },
+                              onPressed: send,
                             ),
                             !isWriting
                                 ? IconButton(

@@ -22,13 +22,13 @@ class SignUp extends StatefulWidget {
 class _SignUpState extends State<SignUp> {
   String? errorMessage;
 
-  Future<void> createUserWithEmailAndPassword() async {
+  Future<void> createUserWithEmailAndPassword({required String token}) async {
     try {
       await Auth().createUserWithEmailAndPassword(
         email: controllerEMail.text,
         password: controllerPassword.text,
         name: controllerName.text,
-        token: "",
+        token: token,
       );
       await Auth().currentUser!.updatePhotoURL(
           "https://firebasestorage.googleapis.com/v0/b/chatbox-3dac1.appspot.com/o/Images%2FProfile-Dark.png?alt=media&token=14a7aa82-5323-4903-90fc-a2738bd42577");
@@ -142,7 +142,8 @@ class _SignUpState extends State<SignUp> {
                 setState(() {
                   _isLoading = true;
                 });
-                createUserWithEmailAndPassword().then((value) {
+                createUserWithEmailAndPassword(token: widget.token)
+                    .then((value) {
                   if (errorMessage == null) {
                     Navigator.popUntil(context, (route) => route.isCurrent);
                     Navigator.push(
