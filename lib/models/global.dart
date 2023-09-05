@@ -1,4 +1,5 @@
 import 'package:chat_app/Pages/home_page.dart';
+import 'package:chat_app/Pages/search.dart';
 import 'package:chat_app/Pages/settings.dart';
 import 'package:chat_app/models/google_sign_in.dart';
 import 'package:chat_app/widget_tree.dart';
@@ -6,21 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:chat_app/models/icomoon_icons.dart';
 import 'package:anim_search_bar/anim_search_bar.dart';
 
-Widget searchBar(
-    {required double width,
-    required Function onSuffixTap,
-    required TextEditingController controller,
-    required Function(String) onSubmitted}) {
-  return AnimSearchBar(
-      autoFocus: true,
-      color: black,
-      searchIconColor: Colors.white,
-      
-      width: width,
-      textController: controller,
-      onSuffixTap: onSuffixTap,
-      onSubmitted: onSubmitted);
-}
+
 
 const Color primaryColor = Color.fromRGBO(36, 120, 109, 1);
 const Color black = Color.fromRGBO(12, 19, 16, 1);

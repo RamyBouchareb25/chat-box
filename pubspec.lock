@@ -57,6 +57,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.1"
+  buffer:
+    dependency: transitive
+    description:
+      name: buffer
+      sha256: "8962c12174f53e2e848a6acd7ac7fd63d8a1a6a316c20c458a832d87eba5422a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.0"
   change_app_package_name:
     dependency: "direct main"
     description:
@@ -185,6 +193,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.8"
+  elastic_client:
+    dependency: "direct main"
+    description:
+      name: elastic_client
+      sha256: e32b6222d49be4c806b2c8ff14b220c567ccb45d113fe39ad42ddb9d520dfd5a
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.12"
   email_validator:
     dependency: "direct main"
     description:
@@ -193,6 +209,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.17"
+  executor:
+    dependency: transitive
+    description:
+      name: executor
+      sha256: "87d935b31b2bdf7fe2af0b77dd8ffe8864eaade25715e9c68bc49497e48c9851"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.2.3"
   fake_async:
     dependency: transitive
     description:
@@ -464,6 +488,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.13.6"
+  http_client:
+    dependency: transitive
+    description:
+      name: http_client
+      sha256: "9e6e1cf0064d78da50754d7b7f8d342a55eea9790d029594073087b2e5d38012"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.5.2"
   http_parser:
     dependency: transitive
     description:

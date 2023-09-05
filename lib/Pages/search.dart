@@ -1,10 +1,15 @@
+import 'dart:convert';
+
 import 'package:chat_app/Classes/message.dart';
 import 'package:chat_app/Pages/conversation.dart';
 import 'package:chat_app/auth.dart';
 import 'package:chat_app/models/global.dart';
+import 'package:chat_app/models/icomoon_icons.dart';
 import 'package:chat_app/models/user_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:elastic_client/elastic_client.dart' as elastic;
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -14,6 +19,11 @@ class SearchPage extends StatefulWidget {
 }
 
 class _SearchPageState extends State<SearchPage> {
+  final elastic.Client client = elastic.Client(elastic.HttpTransport(
+      url: "https://chatbox.es.europe-west1.gcp.cloud.es.io",
+      authorization:
+          "ApiKey Y3VVdVRvb0IwZGh4RUV2M2piRno6RDRjNEdweGhUZWlVWUo1Y2I1ZFh5dw=="));
+
   final TextEditingController _controller = TextEditingController();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   late Stream<QuerySnapshot<Map<String, dynamic>>> _usersStream;
@@ -56,6 +66,9 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   _updateStream() {
+    // client.count(index: "search-users").then((value) => {
+    //       if (kDebugMode) {print(value.toString())}
+    //     });
     setState(() {
       _usersStream = _firestore.collection("Users").orderBy("Name").startAt(
           [_controller.text]).endAt(["${_controller.text}\uf8ff"]).snapshots();
@@ -73,71 +86,77 @@ class _SearchPageState extends State<SearchPage> {
   Widget build(BuildContext grandContext) {
     return Scaffold(
         appBar: AppBar(
-          backgroundColor: Colors.white,
           automaticallyImplyLeading: false,
-          title: searchBar(
-              controller: _controller,
-              width: 400,
-              onSuffixTap: () {
-                // _controller.clear();
-                print("tap");
-              },
-              onSubmitted: (value) {
-                setState(() {
-                  _updateStream();
-                });
-              }),
+          backgroundColor: Colors.white,
+          title: Container(
+            decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(10)),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(left: 20),
+                  child: Icon(
+                    Icomoon.search,
+                    color: black,
+                  ),
+                ),
+                const SizedBox(
+                  width: 10,
+                ),
+                SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.65,
+                    child: TextField(
+                      autofocus: true,
+                      onChanged: (value) {
+                        setState(() {
+                          _updateStream();
+                        });
+                      },
+                      controller: _controller,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Colors.grey[200],
+                        hintText: "Search",
+                        hintStyle: const TextStyle(color: black),
+                        border: InputBorder.none,
+                      ),
+                    )),
+                IconButton(
+                  onPressed: () async {
+                    // _controller.clear();
+                    try {
+                      const mappingJson =
+                          "{\"settings\":{\"analysis\":{\"filter\":{\"autocomplete_filter\":{\"type\":\"edge_ngram\",\"min_gram\":1,\"max_gram\":20}},\"analyzer\":{\"autocomplete\":{\"type\":\"custom\",\"tokenizer\":\"standard\",\"filter\":[\"lowercase\",\"autocomplete_filter\"]}}}}}";
+                      Map<String, dynamic> valueMap = json.decode(mappingJson);
+
+                      await client.updateIndex(
+                          index: "search-users", content: valueMap);
+
+                      final response = await client.search(
+                          index: "search-users",
+                          query: elastic.Query.match("Name", _controller.text));
+
+                      if (kDebugMode) {
+                        response.hits.isEmpty ? print("No Users Found") : null;
+                        for (var element in response.hits) {
+                          print(element.doc);
+                        }
+                      }
+                    } catch (e) {
+                      print(e);
+                    }
+                  },
+                  icon: const Icon(
+                    Icons.close,
+                    color: black,
+                  ),
+                )
+              ],
+            ),
+          ),
         ),
-        // appBar: AppBar(
-        //   automaticallyImplyLeading: false,
-        //   backgroundColor: Colors.white,
-        //   title: Container(
-        //     decoration: BoxDecoration(
-        //         color: Colors.grey[200],
-        //         borderRadius: BorderRadius.circular(10)),
-        //     child: Row(
-        //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        //       children: [
-        //         const Padding(
-        //           padding: EdgeInsets.only(left: 20),
-        //           child: Icon(
-        //             Icomoon.search,
-        //             color: black,
-        //           ),
-        //         ),
-        //         const SizedBox(
-        //           width: 10,
-        //         ),
-        //         SizedBox(
-        //             width: MediaQuery.of(context).size.width * 0.65,
-        //             child: TextField(
-        //               onChanged: (value) {
-        //                 setState(() {
-        //                   _updateStream();
-        //                 });
-        //               },
-        //               controller: _controller,
-        //               decoration: InputDecoration(
-        //                 filled: true,
-        //                 fillColor: Colors.grey[200],
-        //                 hintText: "Search",
-        //                 hintStyle: const TextStyle(color: black),
-        //                 border: InputBorder.none,
-        //               ),
-        //             )),
-        //         IconButton(
-        //           onPressed: () {
-        //             _controller.clear();
-        //           },
-        //           icon: const Icon(
-        //             Icons.close,
-        //             color: black,
-        //           ),
-        //         )
-        //       ],
-        //     ),
-        //   ),
-        // ),
         body: !isLoading
             ? Column(
                 children: [
