@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:chat_app/Classes/message.dart';
 import 'package:chat_app/Pages/conversation.dart';
 import 'package:chat_app/auth.dart';
@@ -7,7 +5,6 @@ import 'package:chat_app/models/global.dart';
 import 'package:chat_app/models/icomoon_icons.dart';
 import 'package:chat_app/models/user_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:elastic_client/elastic_client.dart' as elastic;
 
@@ -27,13 +24,58 @@ class _SearchPageState extends State<SearchPage> {
   final TextEditingController _controller = TextEditingController();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   late Stream<QuerySnapshot<Map<String, dynamic>>> _usersStream;
+  late Future<List<UserModel>> _usersFuture;
+  _updateStream() {
+    setState(() {
+      // userIds != null && userIds.isNotEmpty
+      //     ? _usersStream = _firestore
+      //         .collection("Users")
+      //         .where("UserId", whereIn: userIds)
+      //         .snapshots()
+      //     :
+      _usersStream = _firestore.collection("Users").orderBy("Name").snapshots();
+    });
+  }
+
   @override
   void initState() {
+    _usersFuture = searchUsers();
     _usersStream = _firestore.collection("Users").snapshots();
     _controller.addListener(() {
       _updateStream();
     });
     super.initState();
+  }
+
+  Future<List<UserModel>> searchUsers() async {
+    List<UserModel> users = <UserModel>[];
+    var query = _controller.text;
+    try {
+      elastic.SearchResult response;
+      if (query == "") {
+        response = await client.search(
+            index: "users",
+            query: elastic.Query.matchAll(),
+            source: true,
+            size: 1000);
+      } else {
+        response = await client.search(
+            index: "users",
+            query: elastic.Query.match("Name", _controller.text));
+      }
+
+      for (var element in response.hits) {
+        var user = UserModel.fromMap(element.doc as Map<String, dynamic>);
+        users.add(user);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+        ),
+      );
+    }
+    return users;
   }
 
   Future<void> _createRoom(UserModel user, BuildContext ctx) async {
@@ -63,16 +105,6 @@ class _SearchPageState extends State<SearchPage> {
       },
     ));
     Navigator.pop(ctx);
-  }
-
-  _updateStream() {
-    // client.count(index: "search-users").then((value) => {
-    //       if (kDebugMode) {print(value.toString())}
-    //     });
-    setState(() {
-      _usersStream = _firestore.collection("Users").orderBy("Name").startAt(
-          [_controller.text]).endAt(["${_controller.text}\uf8ff"]).snapshots();
-    });
   }
 
   bool isLoading = false;
@@ -109,10 +141,11 @@ class _SearchPageState extends State<SearchPage> {
                     width: MediaQuery.of(context).size.width * 0.65,
                     child: TextField(
                       autofocus: true,
-                      onChanged: (value) {
+                      onChanged: (value) async {
                         setState(() {
-                          _updateStream();
+                          _usersFuture = searchUsers();
                         });
+                        // _updateStream(userIds: uIds);
                       },
                       controller: _controller,
                       decoration: InputDecoration(
@@ -124,29 +157,8 @@ class _SearchPageState extends State<SearchPage> {
                       ),
                     )),
                 IconButton(
-                  onPressed: () async {
-                    // _controller.clear();
-                    try {
-                      const mappingJson =
-                          "{\"settings\":{\"analysis\":{\"filter\":{\"autocomplete_filter\":{\"type\":\"edge_ngram\",\"min_gram\":1,\"max_gram\":20}},\"analyzer\":{\"autocomplete\":{\"type\":\"custom\",\"tokenizer\":\"standard\",\"filter\":[\"lowercase\",\"autocomplete_filter\"]}}}}}";
-                      Map<String, dynamic> valueMap = json.decode(mappingJson);
-
-                      await client.updateIndex(
-                          index: "search-users", content: valueMap);
-
-                      final response = await client.search(
-                          index: "search-users",
-                          query: elastic.Query.match("Name", _controller.text));
-
-                      if (kDebugMode) {
-                        response.hits.isEmpty ? print("No Users Found") : null;
-                        for (var element in response.hits) {
-                          print(element.doc);
-                        }
-                      }
-                    } catch (e) {
-                      print(e);
-                    }
+                  onPressed: () {
+                    _controller.clear();
                   },
                   icon: const Icon(
                     Icons.close,
@@ -165,25 +177,24 @@ class _SearchPageState extends State<SearchPage> {
                     child: Text("People",
                         style: TextStyle(color: black, fontSize: 20)),
                   ),
-                  StreamBuilder(
-                      stream: _usersStream,
+                  FutureBuilder(
+                      future: _usersFuture,
                       builder: (context, snapshot) {
                         if (!snapshot.hasData) {
                           return const Center(
                             child: CircularProgressIndicator(),
                           );
                         }
-                        if (snapshot.data!.docs.isEmpty) {
+                        if (snapshot.data!.isEmpty) {
                           return const Center(
                             child: Text("No Users Found"),
                           );
                         }
                         return Expanded(
                           child: ListView.builder(
-                            itemCount: snapshot.data!.docs.length,
+                            itemCount: snapshot.data!.length,
                             itemBuilder: (context, index) {
-                              UserModel user = UserModel.fromMap(
-                                  snapshot.data!.docs[index].data());
+                              UserModel user = snapshot.data![index];
                               return ListTile(
                                 onTap: () async {
                                   setState(() {});

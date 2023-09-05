@@ -58,7 +58,7 @@ class _DefaultAppBarState extends State<DefaultAppBar> {
                   radius: 30,
                   // backgroundColor: Colors.transparent,
                   foregroundImage: widget.image ??
-                      Image.asset("Assets/Profile-Dark.png") as ImageProvider,
+                      const AssetImage("Assets/Profile-Dark.png"),
                 )),
           ),
         )
@@ -80,7 +80,6 @@ class _DefaultAppBarState extends State<DefaultAppBar> {
             },
           ),
         ),
-        
       ),
       centerTitle: true,
       title: Padding(
