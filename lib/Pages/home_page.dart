@@ -170,22 +170,71 @@ class _HomeState extends State<Home> {
                                           MainAxisAlignment.spaceBetween,
                                       children: [
                                         Expanded(
-                                          child: CircleAvatar(
-                                            radius: 30,
-                                            backgroundColor: Colors.white,
-                                            backgroundImage: i == 0
-                                                ? NetworkImage(user!.photoURL!)
-                                                : users.length > index
-                                                    ? NetworkImage(users[index]
-                                                                .profilePhoto !=
-                                                            ""
-                                                        ? users[index]
-                                                            .profilePhoto!
-                                                        : "https://firebasestorage.googleapis.com/v0/b/chatbox-3dac1.appspot.com/o/Images%2FProfile-Dark.png?alt=media&token=14a7aa82-5323-4903-90fc-a2738bd42577")
-                                                    : const AssetImage(
-                                                            "Assets/Profile-Dark.png")
-                                                        as ImageProvider,
-                                          ),
+                                          child: Stack(
+                                              alignment: Alignment.center,
+                                              children: [
+                                                CircleAvatar(
+                                                  radius: 30,
+                                                  backgroundColor: Colors.white,
+                                                  backgroundImage: i == 0
+                                                      ? NetworkImage(
+                                                          user!.photoURL!)
+                                                      : users.length > index
+                                                          ? NetworkImage(users[
+                                                                          index]
+                                                                      .profilePhoto !=
+                                                                  ""
+                                                              ? users[index]
+                                                                  .profilePhoto!
+                                                              : "https://firebasestorage.googleapis.com/v0/b/chatbox-3dac1.appspot.com/o/Images%2FProfile-Dark.png?alt=media&token=14a7aa82-5323-4903-90fc-a2738bd42577")
+                                                          : const AssetImage(
+                                                                  "Assets/Profile-Dark.png")
+                                                              as ImageProvider,
+                                                ),
+                                                Positioned(
+                                                  bottom: 10,
+                                                  right: 0,
+                                                  child: i != 0
+                                                      ? Container(
+                                                          height: 15,
+                                                          width: 15,
+                                                          decoration:
+                                                              BoxDecoration(
+                                                            color: users.length <=
+                                                                    index
+                                                                ? Colors.grey
+                                                                : users[index]
+                                                                            .status ==
+                                                                        "online"
+                                                                    ? Colors
+                                                                        .green
+                                                                    : Colors
+                                                                        .grey,
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        10),
+                                                            border: Border.all(
+                                                                color: Colors
+                                                                    .white,
+                                                                width: 2),
+                                                          ),
+                                                        )
+                                                      : Container(
+                                                          decoration:
+                                                              BoxDecoration(
+                                                            color: Colors.white,
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        10),
+                                                          ),
+                                                          child: const Icon(
+                                                            Icons.add,
+                                                            size: 15,
+                                                          )),
+                                                )
+                                              ]),
                                         ),
                                         Text(
                                           i == 0
@@ -340,21 +389,52 @@ class _HomeState extends State<Home> {
                                                 }
                                               },
                                               leading: finishLoading
-                                                  ? CircleAvatar(
-                                                      radius: 30,
-                                                      backgroundImage: users
-                                                              .isNotEmpty
-                                                          ? NetworkImage(users[
-                                                                          index]
-                                                                      .profilePhoto !=
-                                                                  ""
-                                                              ? users[index]
-                                                                  .profilePhoto!
-                                                              : "https://firebasestorage.googleapis.com/v0/b/chatbox-3dac1.appspot.com/o/Images%2FProfile-Dark.png?alt=media&token=14a7aa82-5323-4903-90fc-a2738bd42577")
-                                                          : null,
-                                                      backgroundColor:
-                                                          Colors.white,
-                                                    )
+                                                  ? Stack(children: [
+                                                      CircleAvatar(
+                                                        radius: 30,
+                                                        backgroundImage: users
+                                                                .isNotEmpty
+                                                            ? NetworkImage(users[
+                                                                            index]
+                                                                        .profilePhoto !=
+                                                                    ""
+                                                                ? users[index]
+                                                                    .profilePhoto!
+                                                                : "https://firebasestorage.googleapis.com/v0/b/chatbox-3dac1.appspot.com/o/Images%2FProfile-Dark.png?alt=media&token=14a7aa82-5323-4903-90fc-a2738bd42577")
+                                                            : null,
+                                                        backgroundColor:
+                                                            Colors.white,
+                                                      ),
+                                                      Positioned(
+                                                        bottom: 0,
+                                                        right: 0,
+                                                        child: Container(
+                                                          height: 15,
+                                                          width: 15,
+                                                          decoration:
+                                                              BoxDecoration(
+                                                            color: users.length <=
+                                                                    index
+                                                                ? Colors.grey
+                                                                : users[index]
+                                                                            .status ==
+                                                                        "online"
+                                                                    ? Colors
+                                                                        .green
+                                                                    : Colors
+                                                                        .grey,
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        10),
+                                                            border: Border.all(
+                                                                color: Colors
+                                                                    .white,
+                                                                width: 2),
+                                                          ),
+                                                        ),
+                                                      )
+                                                    ])
                                                   : Shimmer.fromColors(
                                                       baseColor: Colors.grey,
                                                       highlightColor: black,
