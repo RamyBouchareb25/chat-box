@@ -303,73 +303,94 @@ class _ConversationState extends State<Conversation> {
                                     ? 15
                                     : 0,
                               ),
-                              child: Align(
-                                alignment:
-                                    data.senderId == Auth().currentUser!.uid
-                                        ? Alignment.centerRight
-                                        : Alignment.centerLeft,
-                                child: Column(
-                                  children: [
-                                    Align(
-                                      alignment: data.senderId ==
-                                              Auth().currentUser!.uid
-                                          ? Alignment.centerRight
-                                          : Alignment.centerLeft,
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 20, vertical: 15),
-                                        decoration: BoxDecoration(
-                                            color: data.senderId ==
-                                                    Auth().currentUser!.uid
-                                                ? primaryColor
-                                                : grey2,
-                                            borderRadius: BorderRadius.only(
-                                              topLeft: Radius.circular(data
-                                                          .senderId ==
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        data.senderId == Auth().currentUser!.uid
+                                            ? MainAxisAlignment.end
+                                            : MainAxisAlignment.start,
+                                    children: [
+                                      if (data.senderId !=
+                                          Auth().currentUser!.uid)
+                                        CircleAvatar(
+                                          radius: 20,
+                                          backgroundColor: Colors.transparent,
+                                          backgroundImage: widget
+                                                      .user.profilePhoto !=
+                                                  null
+                                              ? NetworkImage(widget
+                                                          .user.profilePhoto !=
+                                                      ""
+                                                  ? widget.user.profilePhoto!
+                                                  : "https://firebasestorage.googleapis.com/v0/b/chatbox-3dac1.appspot.com/o/Images%2FProfile.png?alt=media&token=3b0b8b1e-5b0a-4b0e-9b0a-9b0a9b0a9b0a")
+                                              : const AssetImage(
+                                                      "Assets/Profile.png")
+                                                  as ImageProvider,
+                                        ),
+                                      SizedBox(
+                                        width: data.senderId ==
+                                                Auth().currentUser!.uid
+                                            ? 20
+                                            : 10,
+                                      ),
+                                      Flexible(
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 20, vertical: 15),
+                                          decoration: BoxDecoration(
+                                              color: data.senderId ==
                                                       Auth().currentUser!.uid
-                                                  ? 20
-                                                  : 0),
-                                              topRight: Radius.circular(data
-                                                          .senderId ==
+                                                  ? primaryColor
+                                                  : grey2,
+                                              borderRadius: BorderRadius.only(
+                                                topLeft: Radius.circular(data
+                                                            .senderId ==
+                                                        Auth().currentUser!.uid
+                                                    ? 20
+                                                    : 0),
+                                                topRight: Radius.circular(data
+                                                            .senderId ==
+                                                        Auth().currentUser!.uid
+                                                    ? 0
+                                                    : 20),
+                                                bottomLeft:
+                                                    const Radius.circular(20),
+                                                bottomRight:
+                                                    const Radius.circular(20),
+                                              )),
+                                          child: Text(
+                                            data.message ??
+                                                "error fetching message",
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: data.senderId ==
                                                       Auth().currentUser!.uid
-                                                  ? 0
-                                                  : 20),
-                                              bottomLeft:
-                                                  const Radius.circular(20),
-                                              bottomRight:
-                                                  const Radius.circular(20),
-                                            )),
-                                        child: Text(
-                                          data.message ??
-                                              "error fetching message",
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            color: data.senderId ==
-                                                    Auth().currentUser!.uid
-                                                ? Colors.white
-                                                : black,
+                                                  ? Colors.white
+                                                  : black,
+                                            ),
                                           ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  if ((previousData != null &&
+                                          previousData.senderId !=
+                                              data.senderId) ||
+                                      index == 0)
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                          top: 10, left: 10),
+                                      child: Text(
+                                        timeago.format(
+                                            DateTime.parse(data.timestamp!)),
+                                        style: const TextStyle(
+                                          color: grey,
+                                          fontSize: 12,
                                         ),
                                       ),
                                     ),
-                                    if ((previousData != null &&
-                                            previousData.senderId !=
-                                                data.senderId) ||
-                                        index == 0)
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                            top: 10, left: 10),
-                                        child: Text(
-                                          timeago.format(
-                                              DateTime.parse(data.timestamp!)),
-                                          style: const TextStyle(
-                                            color: grey,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ),
-                                  ],
-                                ),
+                                ],
                               ),
                             );
                           }),
