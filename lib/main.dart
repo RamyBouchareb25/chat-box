@@ -106,7 +106,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (kDebugMode) {
-      print("token : \n${token}");
+      print("token : \n$token");
     }
     if (Auth().currentUser != null) {
       addToken(token);
@@ -132,6 +132,8 @@ class MyApp extends StatelessWidget {
           ),
           brightness: Brightness.dark,
         ),
-        home: WidgetTree(token: token,));
+        home: WidgetTree(
+          token: token,
+        ));
   }
 }

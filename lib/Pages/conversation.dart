@@ -52,6 +52,97 @@ class _ConversationState extends State<Conversation> {
     return await resp;
   }
 
+  Widget thisBottomAppBar() {
+    return BottomAppBar(
+      padding: const EdgeInsets.symmetric(vertical: 15),
+      elevation: 0,
+      child: Container(
+        height: 50,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            IconButton(
+              icon: const Icon(
+                Icomoon.Clip,
+                color: black,
+                size: 20,
+              ),
+              onPressed: () {
+                // Navigator.push(context, MaterialPageRoute(
+                //   builder: (context) {
+                //     return const Test();
+                //   },
+                // ));
+              },
+            ),
+            Expanded(
+              child: TextField(
+                controller: messageController,
+                onChanged: (value) {
+                  setState(() {
+                    isWriting = value.isNotEmpty;
+                  });
+                },
+                focusNode: _textFieldFocus,
+                decoration: InputDecoration(
+                    suffixIcon: IconButton(
+                        onPressed: () {},
+                        icon: const Icon(
+                          Icomoon.files,
+                          color: black,
+                        )),
+                    filled: true,
+                    fillColor: Colors.grey[200],
+                    hintText: "your message...",
+                    contentPadding: const EdgeInsets.symmetric(
+                        vertical: 10.0, horizontal: 15.0),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      borderSide: BorderSide.none,
+                    )),
+              ),
+            ),
+            IconButton(
+              icon: Container(
+                height: 40,
+                width: 40,
+                decoration: isWriting
+                    ? BoxDecoration(
+                        color: primaryColor,
+                        borderRadius: BorderRadius.circular(20),
+                      )
+                    : null,
+                child: Icon(
+                  !isWriting ? Icomoon.Camera : Icomoon.Send,
+                  color: !isWriting ? black : Colors.white,
+                  size: !isWriting ? 20 : 15,
+                ),
+              ),
+              onPressed: send,
+            ),
+            !isWriting
+                ? IconButton(
+                    icon: const Icon(
+                      Icomoon.Mic,
+                      color: black,
+                      size: 20,
+                    ),
+                    onPressed: () {
+                      if (record.isStopped) {
+                        startRecord();
+                      } else if (record.isRecording) {
+                        stopRecord();
+                      }
+                    },
+                  )
+                : const SizedBox(),
+          ],
+        ),
+      ),
+    );
+  }
+
   void send() async {
     if (isWriting) {
       var now = DateTime.now().toString();
@@ -395,87 +486,7 @@ class _ConversationState extends State<Conversation> {
                             );
                           }),
                     ),
-                    BottomAppBar(
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      elevation: 0,
-                      child: Container(
-                        height: 50,
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            IconButton(
-                              icon: const Icon(
-                                Icomoon.Clip,
-                                color: black,
-                                size: 20,
-                              ),
-                              onPressed: () {
-                                // Navigator.push(context, MaterialPageRoute(
-                                //   builder: (context) {
-                                //     return const Test();
-                                //   },
-                                // ));
-                              },
-                            ),
-                            Expanded(
-                              child: TextField(
-                                controller: messageController,
-                                onChanged: (value) {
-                                  setState(() {
-                                    isWriting = value.isNotEmpty;
-                                  });
-                                },
-                                focusNode: _textFieldFocus,
-                                decoration: InputDecoration(
-                                  filled: true,
-                                  fillColor: Colors.grey[200],
-                                  hintText: "Write your message...",
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            IconButton(
-                              icon: Container(
-                                height: 40,
-                                width: 40,
-                                decoration: isWriting
-                                    ? BoxDecoration(
-                                        color: primaryColor,
-                                        borderRadius: BorderRadius.circular(20),
-                                      )
-                                    : null,
-                                child: Icon(
-                                  !isWriting ? Icomoon.Camera : Icomoon.Send,
-                                  color: !isWriting ? black : Colors.white,
-                                  size: !isWriting ? 20 : 15,
-                                ),
-                              ),
-                              onPressed: send,
-                            ),
-                            !isWriting
-                                ? IconButton(
-                                    icon: const Icon(
-                                      Icomoon.Mic,
-                                      color: black,
-                                      size: 20,
-                                    ),
-                                    onPressed: () {
-                                      if (record.isStopped) {
-                                        startRecord();
-                                      } else if (record.isRecording) {
-                                        stopRecord();
-                                      }
-                                    },
-                                  )
-                                : const SizedBox(),
-                          ],
-                        ),
-                      ),
-                    )
+                    thisBottomAppBar()
                   ],
                 );
               } else if (snapshot.hasError) {
@@ -491,87 +502,7 @@ class _ConversationState extends State<Conversation> {
                       child: Text(
                           "Send Your first Message to ${widget.user.name}!"),
                     ),
-                    BottomAppBar(
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      elevation: 0,
-                      child: Container(
-                        height: 50,
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            IconButton(
-                              icon: const Icon(
-                                Icomoon.Clip,
-                                color: black,
-                                size: 20,
-                              ),
-                              onPressed: () {
-                                // Navigator.push(context, MaterialPageRoute(
-                                //   builder: (context) {
-                                //     return const Test();
-                                //   },
-                                // ));
-                              },
-                            ),
-                            Expanded(
-                              child: TextField(
-                                controller: messageController,
-                                onChanged: (value) {
-                                  setState(() {
-                                    isWriting = value.isNotEmpty;
-                                  });
-                                },
-                                focusNode: _textFieldFocus,
-                                decoration: InputDecoration(
-                                  filled: true,
-                                  fillColor: Colors.grey[200],
-                                  hintText: "Write your message...",
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            IconButton(
-                              icon: Container(
-                                height: 40,
-                                width: 40,
-                                decoration: isWriting
-                                    ? BoxDecoration(
-                                        color: primaryColor,
-                                        borderRadius: BorderRadius.circular(20),
-                                      )
-                                    : null,
-                                child: Icon(
-                                  !isWriting ? Icomoon.Camera : Icomoon.Send,
-                                  color: !isWriting ? black : Colors.white,
-                                  size: !isWriting ? 20 : 15,
-                                ),
-                              ),
-                              onPressed: send,
-                            ),
-                            !isWriting
-                                ? IconButton(
-                                    icon: const Icon(
-                                      Icomoon.Mic,
-                                      color: black,
-                                      size: 20,
-                                    ),
-                                    onPressed: () {
-                                      if (record.isStopped) {
-                                        startRecord();
-                                      } else if (record.isRecording) {
-                                        stopRecord();
-                                      }
-                                    },
-                                  )
-                                : const SizedBox(),
-                          ],
-                        ),
-                      ),
-                    )
+                    thisBottomAppBar(),
                   ],
                 );
               }
