@@ -1,15 +1,24 @@
 import 'package:chat_app/Pages/home_page.dart';
-import 'package:chat_app/Pages/search.dart';
 import 'package:chat_app/Pages/settings.dart';
 import 'package:chat_app/models/google_sign_in.dart';
 import 'package:chat_app/widget_tree.dart';
 import 'package:flutter/material.dart';
 import 'package:chat_app/models/icomoon_icons.dart';
-import 'package:anim_search_bar/anim_search_bar.dart';
 
+const MaterialColor primarySwatch = MaterialColor(0xFF24786D, <int, Color>{
+  50: Color(0xFF24F86D),
+  100: Color(0xFF24F86D),
+  200: Color(0xFF24E86D),
+  300: Color(0xFF24D86D),
+  400: Color(0xFF24C86D),
+  500: Color(0xFF24B86D),
+  600: Color(0xFF24A86D),
+  700: Color(0xFF24986D),
+  800: Color(0xFF24886D),
+  900: Color(0xFF24786D),
+});
 
-
-const Color primaryColor = Color.fromRGBO(36, 120, 109, 1);
+const Color primaryColor = Color(0xFF24786D);
 const Color black = Color.fromRGBO(12, 19, 16, 1);
 const Color grey = Color.fromARGB(255, 121, 124, 123);
 const Color dark = Color.fromARGB(252, 18, 20, 20);

@@ -5,9 +5,11 @@ import 'package:chat_app/models/global.dart';
 import 'package:chat_app/models/user_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:chat_app/auth.dart';
+import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:pull_to_refresh/pull_to_refresh.dart';
@@ -54,6 +56,7 @@ class _HomeState extends State<Home> {
   final RefreshController _controller = RefreshController();
   bool firstTimeLoading = true;
   Future<void> _onRefresh() async {
+    Auth.setuser();
     var value = await _getUsers();
     var snapshot = await _getRooms();
     setState(() {
@@ -130,10 +133,18 @@ class _HomeState extends State<Home> {
     // });
     // Auth().currentUser!.updatePhotoURL(
     //     "https://firebasestorage.googleapis.com/v0/b/chatbox-3dac1.appspot.com/o/Profile%20Photos%2Fmejpg.jpg?alt=media&token=20625eb2-e272-49b8-bcec-c7e762e4a786");
+    if (kDebugMode) {
+      try {
+        print(Auth.userModel!.toMap());
+      } catch (e) {
+        printError(info: e.toString());
+      }
+    }
     return Scaffold(
         resizeToAvoidBottomInset: true,
         backgroundColor: black,
         appBar: DefaultAppBar(
+          heroTag: true,
           controller: TextEditingController(),
           title: "Home",
           context: context,

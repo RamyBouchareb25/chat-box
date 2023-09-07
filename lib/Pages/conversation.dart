@@ -9,12 +9,14 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:chat_app/models/global.dart';
+import 'package:get/get.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:uuid/uuid.dart';
-
+import 'package:image_picker_plus/image_picker_plus.dart';
+import 'package:video_player/video_player.dart';
 class Conversation extends StatefulWidget {
   const Conversation(
       {super.key,
@@ -29,18 +31,19 @@ class Conversation extends StatefulWidget {
 }
 
 class _ConversationState extends State<Conversation> {
+  final thisHeight = Get.height;
+  final thisWidth = Get.width;
   final record = FlutterSoundRecorder();
+  final _storage = FirebaseStorage.instance;
   FirebaseFirestore firestore = FirebaseFirestore.instance;
   FirebaseFunctions functions = FirebaseFunctions.instance;
   FirebaseStorage storage = FirebaseStorage.instance;
   UserModel? interlocuter;
-  final FocusNode _textFieldFocus = FocusNode();
-  double _bottomAppBarOffset = 0.0;
-  double _bodyOffset = 0.0;
   final TextEditingController messageController = TextEditingController();
   bool isWriting = false;
   String chatBoxImageUrl =
       "https://firebasestorage.googleapis.com/v0/b/chatbox-3dac1.appspot.com/o/Images%2FApp%20icon.png?alt=media&token=d050fd05-8dbe-4393-a55e-2d4d9515218d";
+
   Future<HttpsCallableResult> sendMessage(String token, String messsage) async {
     HttpsCallable sendNotif = functions.httpsCallable("sendNotification");
     final resp = sendNotif.call(<String, dynamic>{
@@ -50,6 +53,111 @@ class _ConversationState extends State<Conversation> {
       "image": chatBoxImageUrl,
     });
     return await resp;
+  }
+
+  Future<void> sendImage(ImageSource source) async {
+    ImagePickerPlus picker = ImagePickerPlus(context);
+    SelectedImagesDetails? images = await picker.pickBoth(
+        source: source,
+        galleryDisplaySettings:
+            GalleryDisplaySettings(cropImage: true, showImagePreview: true));
+    if (images != null) {
+      try {
+        for (var image in images.selectedFiles) {
+          var ref = _storage.ref();
+          var uid = const Uuid().v4();
+          var isImage = image.isThatImage;
+          var snapshot = await ref
+              .child("Messages/${widget.roomId}/$uid")
+              .putFile(image.selectedFile);
+          var url = await snapshot.ref.getDownloadURL();
+          var now = DateTime.now().toString();
+          MessageData message = MessageData(
+              id: widget.roomId,
+              message: url,
+              messageId: uid,
+              receiverId: widget.user.uid,
+              senderId: Auth().currentUser!.uid,
+              timestamp: now,
+              type: isImage ? MessageType.Image : MessageType.Video,
+              isRead: false);
+          await firestore
+              .collection("Rooms")
+              .doc(widget.roomId)
+              .collection("messages")
+              .add(message.toMap());
+          _updateLastMessage(now);
+        }
+      } catch (e) {
+        printError(info: e.toString());
+      }
+    }
+  }
+
+  _updateLastMessage(String date) {
+    firestore
+        .collection("Rooms")
+        .doc(widget.roomId)
+        .update({"LastMsgTime": date});
+  }
+
+  Widget renderText(MessageData data, BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+      decoration: BoxDecoration(
+          color:
+              data.senderId == Auth().currentUser!.uid ? primaryColor : grey2,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(
+                data.senderId == Auth().currentUser!.uid ? 20 : 0),
+            topRight: Radius.circular(
+                data.senderId == Auth().currentUser!.uid ? 0 : 20),
+            bottomLeft: const Radius.circular(20),
+            bottomRight: const Radius.circular(20),
+          )),
+      child: Text(
+        data.message ?? "error fetching message",
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          color:
+              data.senderId == Auth().currentUser!.uid ? Colors.white : black,
+        ),
+      ),
+    );
+  }
+
+  Widget renderImageMessage(MessageData data, BuildContext context) {
+    return Container(
+      height: thisHeight * 0.3,
+      width: thisWidth * 0.7,
+      decoration: BoxDecoration(
+          image: DecorationImage(image: NetworkImage(data.message!))),
+    );
+  }
+
+  Widget renderVideo(MessageData data, BuildContext context) {
+    print('video here ${data.message}');
+    VideoPlayerController _controller =
+        VideoPlayerController.networkUrl(Uri.parse(data.message!));
+
+    return SizedBox(
+      width: thisWidth * 0.7,
+      child: const Text(
+          "this is a video \nThis Version doesn't support videos yet\nPlease download the latest update if available"),
+    );
+  }
+
+  Widget renderMessage(MessageData data, BuildContext context) {
+    switch (data.type) {
+      case MessageType.Text:
+        return renderText(data, context);
+      case MessageType.Image:
+        return renderImageMessage(data, context);
+      case MessageType.Video:
+        return renderVideo(data, context);
+      default:
+        return renderText(data, context);
+    }
   }
 
   Widget thisBottomAppBar() {
@@ -84,10 +192,11 @@ class _ConversationState extends State<Conversation> {
                     isWriting = value.isNotEmpty;
                   });
                 },
-                focusNode: _textFieldFocus,
                 decoration: InputDecoration(
                     suffixIcon: IconButton(
-                        onPressed: () {},
+                        onPressed: () async {
+                          await sendImage(ImageSource.gallery);
+                        },
                         icon: const Icon(
                           Icomoon.files,
                           color: black,
@@ -157,13 +266,10 @@ class _ConversationState extends State<Conversation> {
                   receiverId: widget.user.uid,
                   senderId: Auth().currentUser!.uid,
                   timestamp: now,
-                  type: "Text",
+                  type: MessageType.Text,
                   isRead: false)
               .toMap());
-      firestore
-          .collection("Rooms")
-          .doc(widget.roomId)
-          .update({"LastMsgTime": now});
+      _updateLastMessage(now);
       var msg = messageController.text;
       messageController.clear();
       for (var token in interlocuter!.token!) {
@@ -174,10 +280,13 @@ class _ConversationState extends State<Conversation> {
           isWriting = false;
         });
       }
+    } else {
+      sendImage(ImageSource.camera);
     }
   }
 
   Future<void> initRecord() async {
+    super.initState();
     final status = await Permission.microphone.request();
     if (status.isDenied) {
       throw 'permission denied to access microphone';
@@ -190,6 +299,7 @@ class _ConversationState extends State<Conversation> {
   void dispose() {
     super.dispose();
     record.closeRecorder();
+    
   }
 
   Future<void> startRecord() async {
@@ -210,8 +320,6 @@ class _ConversationState extends State<Conversation> {
     super.initState();
 
     initRecord();
-
-    _textFieldFocus.addListener(_onTextFieldFocusChange);
 
     if (widget.lastMessages.isNotEmpty) {
       for (var element in widget.lastMessages) {
@@ -237,13 +345,6 @@ class _ConversationState extends State<Conversation> {
                 });
       }
     }
-  }
-
-  void _onTextFieldFocusChange() {
-    setState(() {
-      _bottomAppBarOffset = _textFieldFocus.hasFocus ? 50.0 : 0.0;
-      _bodyOffset = _textFieldFocus.hasFocus ? 50.0 : 0.0;
-    });
   }
 
   @override
@@ -426,42 +527,7 @@ class _ConversationState extends State<Conversation> {
                                             : 10,
                                       ),
                                       Flexible(
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 20, vertical: 15),
-                                          decoration: BoxDecoration(
-                                              color: data.senderId ==
-                                                      Auth().currentUser!.uid
-                                                  ? primaryColor
-                                                  : grey2,
-                                              borderRadius: BorderRadius.only(
-                                                topLeft: Radius.circular(data
-                                                            .senderId ==
-                                                        Auth().currentUser!.uid
-                                                    ? 20
-                                                    : 0),
-                                                topRight: Radius.circular(data
-                                                            .senderId ==
-                                                        Auth().currentUser!.uid
-                                                    ? 0
-                                                    : 20),
-                                                bottomLeft:
-                                                    const Radius.circular(20),
-                                                bottomRight:
-                                                    const Radius.circular(20),
-                                              )),
-                                          child: Text(
-                                            data.message ??
-                                                "error fetching message",
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              color: data.senderId ==
-                                                      Auth().currentUser!.uid
-                                                  ? Colors.white
-                                                  : black,
-                                            ),
-                                          ),
-                                        ),
+                                        child: renderMessage(data, context),
                                       ),
                                     ],
                                   ),

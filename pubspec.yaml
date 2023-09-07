@@ -59,6 +59,8 @@ dependencies:
   uuid: ^3.0.7
   anim_search_bar: ^2.0.3
   elastic_client: ^0.3.12
+  image_picker_plus: ^0.5.9
+  video_player: ^2.7.1
 
 dev_dependencies:
   flutter_test:

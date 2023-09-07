@@ -1,3 +1,5 @@
+enum MessageType { Text, Image, Video, Audio, File, Location, Sticker }
+
 class MessageData {
   String? id;
   final String? messageId;
@@ -5,7 +7,7 @@ class MessageData {
   final String? senderId;
   final String? receiverId;
   final String? timestamp;
-  final String? type;
+  final MessageType? type;
   final bool? isRead;
 
   MessageData({
@@ -19,6 +21,27 @@ class MessageData {
     this.isRead,
   });
   factory MessageData.fromMap(Map<String, dynamic> data) {
+    MessageType getMessageType(String type) {
+      switch (type) {
+        case 'MessageType.Text':
+          return MessageType.Text;
+        case 'MessageType.Image':
+          return MessageType.Image;
+        case 'MessageType.Video':
+          return MessageType.Video;
+        case 'MessageType.Audio':
+          return MessageType.Audio;
+        case 'MessageType.File':
+          return MessageType.File;
+        case 'MessageType.Location':
+          return MessageType.Location;
+        case 'MessageType.Sticker':
+          return MessageType.Sticker;
+        default:
+          return MessageType.Text;
+      }
+    }
+
     return MessageData(
       id: data['id'],
       messageId: data['messageId'],
@@ -26,11 +49,10 @@ class MessageData {
       senderId: data['senderId'],
       receiverId: data['receiverId'],
       timestamp: data['timestamp'],
-      type: data['type'],
+      type: getMessageType(data['type']),
       isRead: data['isRead'],
     );
   }
-
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -39,7 +61,7 @@ class MessageData {
       'senderId': senderId,
       'receiverId': receiverId,
       'timestamp': timestamp,
-      'type': type,
+      'type': type.toString(),
       'isRead': isRead,
     };
   }

@@ -99,6 +99,8 @@ Future<void> addToken(String? token) async {
   }
 }
 
+
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key, required this.token});
   final String token;
@@ -122,7 +124,7 @@ class MyApp extends StatelessWidget {
             elevation: 0,
             centerTitle: true,
           ),
-          primarySwatch: Colors.blue,
+          primarySwatch: primarySwatch,
         ),
         darkTheme: ThemeData(
           appBarTheme: const AppBarTheme(

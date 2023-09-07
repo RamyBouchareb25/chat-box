@@ -5,7 +5,7 @@ import 'package:chat_app/auth.dart';
 import 'package:chat_app/Pages/home_page.dart';
 
 class WidgetTree extends StatefulWidget {
-  const WidgetTree({super.key,required this.token});
+  const WidgetTree({super.key, required this.token});
   final String token;
   @override
   State<WidgetTree> createState() => _WidgetTreeState();
@@ -38,6 +38,7 @@ class _WidgetTreeState extends State<WidgetTree> with WidgetsBindingObserver {
               : "offline"
         });
       }
+      Auth.setuser();
     });
     super.didChangeAppLifecycleState(state);
   }
@@ -63,7 +64,9 @@ class _WidgetTreeState extends State<WidgetTree> with WidgetsBindingObserver {
             });
             return const Home();
           } else {
-            return Start( token: widget.token,);
+            return Start(
+              token: widget.token,
+            );
           }
         } else {
           return Scaffold(

@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:chat_app/auth.dart';
+import 'package:get/get.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key, required this.token});
@@ -146,7 +147,7 @@ class _LoginState extends State<Login> {
                                           )));
                             } else {
                               if (kDebugMode) {
-                                print(errorMessage);
+                                printError(info: errorMessage.toString());
                               }
                               setState(() {
                                 _isLoading = false;
