@@ -7,6 +7,7 @@ import 'package:chat_app/models/user_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:chat_app/models/global.dart';
 import 'package:get/get.dart';
@@ -18,6 +19,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:uuid/uuid.dart';
 import 'package:image_picker_plus/image_picker_plus.dart';
 import 'package:video_player/video_player.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class Conversation extends StatefulWidget {
   const Conversation(
@@ -58,6 +60,13 @@ class _ConversationState extends State<Conversation> {
     return await resp;
   }
 
+  Future<void> _launchURL(String url) async {
+    var parsedUrl = Uri.parse(url);
+    if (!await launchUrl(parsedUrl)) {
+      throw Exception('Could not launch $parsedUrl');
+    }
+  }
+  
   Future<void> sendImage(ImageSource source) async {
     ImagePickerPlus picker = ImagePickerPlus(context);
     SelectedImagesDetails? images = await picker.pickBoth(
@@ -104,7 +113,63 @@ class _ConversationState extends State<Conversation> {
         .update({"LastMsgTime": date});
   }
 
+  List<TextSpan> extractURLAndText(
+      {required String text, required Color color}) {
+    List<TextSpan> spans = [];
+    const urlPattern = r'(https?|ftp):\/\/[^\s/$.?#].[^\s]*$';
+    final regex = RegExp(urlPattern, caseSensitive: false);
+
+    String url = '';
+    String linkText = text;
+    int currentIndex = 0;
+    for (var match in regex.allMatches(text)) {
+      final preMatch = text.substring(currentIndex, match.start);
+      if (preMatch.isNotEmpty) {
+        spans.add(
+          TextSpan(
+              text: preMatch,
+              style: TextStyle(color: color, fontWeight: FontWeight.bold)),
+        );
+      }
+      // Extract the URL and text
+      final url = match.group(0)!;
+      final linkText = url;
+
+      // Create a clickable span
+      spans.add(
+        TextSpan(
+          text: linkText,
+          style: TextStyle(
+            color: color,
+            decoration: TextDecoration.underline,
+          ),
+          recognizer: TapGestureRecognizer()
+            ..onTap = () {
+              _launchURL(url);
+            },
+        ),
+      );
+
+      currentIndex = match.end;
+    }
+    // Add any remaining non-URL text
+    final remainingText = text.substring(currentIndex);
+    if (remainingText.isNotEmpty) {
+      spans.add(
+        TextSpan(
+            text: remainingText,
+            style: TextStyle(color: color, fontWeight: FontWeight.bold)),
+      );
+    }
+
+    return spans;
+  }
+
   Widget renderText(MessageData data, BuildContext context) {
+    var spans = extractURLAndText(
+      text: data.message!,
+      color: data.senderId != Auth().currentUser!.uid ? black : Colors.white,
+    );
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
       decoration: BoxDecoration(
@@ -118,14 +183,7 @@ class _ConversationState extends State<Conversation> {
             bottomLeft: const Radius.circular(20),
             bottomRight: const Radius.circular(20),
           )),
-      child: Text(
-        data.message ?? "error fetching message",
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          color:
-              data.senderId == Auth().currentUser!.uid ? Colors.white : black,
-        ),
-      ),
+      child: RichText(text: TextSpan(children: spans)),
     );
   }
 
@@ -145,7 +203,7 @@ class _ConversationState extends State<Conversation> {
     if (!controller!.value.isInitialized) {
       controller.initialize().then((_) {
         if (context.mounted) {
-        setState(() {});
+          setState(() {});
         }
       });
       controller.setLooping(true);

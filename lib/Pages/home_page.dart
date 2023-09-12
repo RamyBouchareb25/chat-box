@@ -39,6 +39,11 @@ class _HomeState extends State<Home> {
         .get();
   }
 
+  Future<void> constantRefresh() async {
+    await _onRefresh();
+    constantRefresh();
+  }
+
   Stream<QuerySnapshot<Map<String, dynamic>>> _getMessages(
       {required dynamic docId, required bool isEmpty}) {
     return isEmpty
@@ -94,6 +99,7 @@ class _HomeState extends State<Home> {
   List<MessageData> lastMessages = [];
   @override
   void initState() {
+    constantRefresh();
     _getUsers().then((value) {
       _getRooms().then((snapshot) {
         for (var index = 0; index < snapshot.docs.length; index++) {
