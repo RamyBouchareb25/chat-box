@@ -1,3 +1,4 @@
+import 'package:chat_app/Classes/custom_page_route.dart';
 import 'package:chat_app/Classes/message.dart';
 import 'package:chat_app/Pages/conversation.dart';
 import 'package:chat_app/components/appbar.dart';
@@ -29,6 +30,7 @@ class _HomeState extends State<Home> {
   FirebaseStorage storage = FirebaseStorage.instance;
   List<UserModel> users = [];
   List<String> urls = [];
+  List<int> lastMessagesLength = List.generate(100, (index) => 0);
   Future<QuerySnapshot<Map<String, dynamic>>> _getRooms() async {
     return await firestore
         .collection("Rooms")
@@ -59,20 +61,22 @@ class _HomeState extends State<Home> {
     Auth.setuser();
     var value = await _getUsers();
     var snapshot = await _getRooms();
-    setState(() {
-      users = [];
-      for (var index = 0; index < snapshot.docs.length; index++) {
-        for (var aUser in value.docs) {
-          UserModel userNow = UserModel.fromMap(aUser.data());
-          if ((userNow.uid == snapshot.docs[index].data()["users"][0] ||
-                  aUser.data()["UserId"] ==
-                      snapshot.docs[index].data()["users"][1]) &&
-              userNow.uid != user!.uid) {
-            users.add(userNow);
+    if (context.mounted) {
+      setState(() {
+        users = [];
+        for (var index = 0; index < snapshot.docs.length; index++) {
+          for (var aUser in value.docs) {
+            UserModel userNow = UserModel.fromMap(aUser.data());
+            if ((userNow.uid == snapshot.docs[index].data()["users"][0] ||
+                    aUser.data()["UserId"] ==
+                        snapshot.docs[index].data()["users"][1]) &&
+                userNow.uid != user!.uid) {
+              users.add(userNow);
+            }
           }
         }
-      }
-    });
+      });
+    }
     if (!firstTimeLoading && context.mounted) {
       lastMessages = [];
     }
@@ -334,6 +338,18 @@ class _HomeState extends State<Home> {
                                       var finishLoading = snap.hasData;
 
                                       if (finishLoading && finishLoading2) {
+                                        var thisLastMessages = <MessageData>[];
+                                        for (var element in snap.data!.docs) {
+                                          var thisMsg = MessageData.fromMap(
+                                              element.data());
+                                          if (thisMsg.isRead == false &&
+                                              thisMsg.senderId ==
+                                                  users[index].uid) {
+                                            thisLastMessages.add(thisMsg);
+                                          }
+                                        }
+                                        lastMessagesLength[index] =
+                                            thisLastMessages.length;
                                         lastMessage = snap.data!.size == 0
                                             ? MessageData()
                                             : MessageData.fromMap(snap
@@ -352,10 +368,15 @@ class _HomeState extends State<Home> {
                                           }
                                         }
                                       }
-                                      lastMessages
-                                          .map((e) =>
-                                              e.senderId == users[index].uid)
-                                          .length;
+                                      // var unreadMmessages = [];
+                                      // for (var msg in lastMessages) {
+                                      //   if (msg.senderId == users[index].uid) {
+                                      //     unreadMmessages.add(msg);
+                                      //   }
+                                      // }
+                                      // if (kDebugMode) {
+                                      //   print(unreadMmessages);
+                                      // }
                                       return Container(
                                         color: Colors.white,
                                         child: Padding(
@@ -365,37 +386,37 @@ class _HomeState extends State<Home> {
                                               onTap: () {
                                                 if (finishLoading) {
                                                   if (users.length > index) {
-                                                    Navigator.push(context,
-                                                        MaterialPageRoute(
-                                                            builder:
-                                                                (BuildContext
-                                                                    context) {
-                                                      var unReadMessages =
-                                                          <MessageData>[];
-                                                      for (var element
-                                                          in lastMessages) {
-                                                        element.senderId ==
-                                                                    users[index]
-                                                                        .uid &&
-                                                                element.receiverId ==
-                                                                    Auth()
-                                                                        .currentUser!
-                                                                        .uid
-                                                            ? unReadMessages
-                                                                .add(element)
-                                                            : null;
-                                                      }
-                                                      return Conversation(
-                                                        lastMessages:
-                                                            unReadMessages
-                                                                    .isEmpty
-                                                                ? <MessageData>[]
-                                                                : unReadMessages,
-                                                        user: users[index],
-                                                        roomId: snapshot.data!
-                                                            .docs[index].id,
-                                                      );
-                                                    }));
+                                                    var unReadMessages =
+                                                        <MessageData>[];
+                                                    for (var element
+                                                        in lastMessages) {
+                                                      element.senderId ==
+                                                                  users[index]
+                                                                      .uid &&
+                                                              element.receiverId ==
+                                                                  Auth()
+                                                                      .currentUser!
+                                                                      .uid
+                                                          ? unReadMessages
+                                                              .add(element)
+                                                          : null;
+                                                    }
+                                                    Navigator.of(context).push(
+                                                        CustomPageRoute(
+                                                            axis: AxisDirection
+                                                                .down,
+                                                            child: Conversation(
+                                                              lastMessages: unReadMessages
+                                                                      .isEmpty
+                                                                  ? <MessageData>[]
+                                                                  : unReadMessages,
+                                                              user:
+                                                                  users[index],
+                                                              roomId: snapshot
+                                                                  .data!
+                                                                  .docs[index]
+                                                                  .id,
+                                                            )));
                                                   }
                                                 }
                                               },
@@ -513,34 +534,15 @@ class _HomeState extends State<Home> {
                                                           MainAxisAlignment
                                                               .spaceBetween,
                                                       children: [
-                                                        Text(
-                                                          lastMessage!.senderId ==
-                                                                  null
-                                                              ? "No Messages Yet"
-                                                              : lastMessage!
-                                                                          .senderId ==
-                                                                      user!.uid
-                                                                  ? "You: ${lastMessage!.message!.substring(0, lastMessage!.message!.length < messageMaxLength ? lastMessage!.message!.length : messageMaxLength)} ${lastMessage!.message!.length > messageMaxLength ? "..." : ""}"
-                                                                  : lastMessage!
-                                                                              .message ==
-                                                                          null
-                                                                      ? "No Messages Yet"
-                                                                      : "${lastMessage!.message!.substring(0, lastMessage!.message!.length < messageMaxLength ? lastMessage!.message!.length : messageMaxLength)} ${lastMessage!.message!.length > messageMaxLength ? "..." : ""}",
-                                                          style: TextStyle(
-                                                              color: lastMessage!
-                                                                              .id ==
-                                                                          null ||
-                                                                      lastMessage!
-                                                                              .senderId ==
-                                                                          user!
-                                                                              .uid ||
-                                                                      lastMessage!
-                                                                          .isRead!
-                                                                  ? Colors.grey
-                                                                  : black,
-                                                              fontSize: 15),
-                                                        ),
-                                                        lastMessages.isNotEmpty &&
+                                                        showLastMessage(
+                                                            lastMessage:
+                                                                lastMessage,
+                                                            user: user),
+                                                        lastMessages.any((element) =>
+                                                                    element
+                                                                        .senderId ==
+                                                                    users[index]
+                                                                        .uid) &&
                                                                 lastMessage!
                                                                         .id !=
                                                                     null &&
@@ -558,11 +560,8 @@ class _HomeState extends State<Home> {
                                                                             100)),
                                                                 child: Center(
                                                                   child: Text(
-                                                                    lastMessages
-                                                                        .map((e) =>
-                                                                            e.senderId ==
-                                                                            users[index].uid)
-                                                                        .length
+                                                                    lastMessagesLength[
+                                                                            index]
                                                                         .toString(),
                                                                     style: const TextStyle(
                                                                         color: Colors
@@ -628,4 +627,54 @@ class _HomeState extends State<Home> {
         ),
         bottomNavigationBar: bottomNavBar(context: context, selectedPage: 0));
   }
+}
+
+Widget showLastMessage({MessageData? lastMessage, User? user}) {
+  int messageMaxLength = 18;
+  var messsage = "";
+  if (lastMessage!.senderId == null) {
+    messsage = "No Messages Yet";
+  } else if (lastMessage.senderId == user!.uid) {
+    messsage = "You: ";
+  } else if (lastMessage.message == null) {
+    messsage = "No Messages Yet";
+  }
+  switch (lastMessage.type) {
+    case MessageType.Text:
+      messsage += lastMessage.message!.length > messageMaxLength
+          ? "${lastMessage.message!.substring(0, messageMaxLength)}..."
+          : lastMessage.message!;
+      break;
+    case MessageType.Image:
+      messsage += "Sent an Image";
+      break;
+    case MessageType.Video:
+      messsage += "Sent a Video";
+      break;
+    case MessageType.Audio:
+      messsage += "Sent an Audio";
+      break;
+    case MessageType.File:
+      messsage += "Sent a File";
+      break;
+    case MessageType.Location:
+      messsage += "Sent a Location";
+      break;
+    case MessageType.Sticker:
+      messsage += "Sent a Sticker";
+      break;
+    default:
+      messsage += "Sent a Message";
+      break;
+  }
+
+  var color = lastMessage.id == null ||
+          lastMessage.senderId == user!.uid ||
+          lastMessage.isRead!
+      ? Colors.grey
+      : black;
+  return Text(
+    messsage,
+    style: TextStyle(color: color, fontSize: 15),
+  );
 }

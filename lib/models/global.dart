@@ -69,8 +69,14 @@ Widget bottomNavBar({selectedPage, required BuildContext context}) {
     onTap: (value) {
       switch (value) {
         case 0:
-          Navigator.push(
-              context, MaterialPageRoute(builder: (context) => const Home()));
+          // Navigator.popUntil(context, (route) => !route.isCurrent);
+          // Navigator.push(
+          //     context, MaterialPageRoute(builder: (context) => const Home()));
+          Navigator.pushReplacement(context, MaterialPageRoute(
+            builder: (context) {
+              return const Home();
+            },
+          ));
           break;
         case 1:
           // Navigator.push(
@@ -81,8 +87,14 @@ Widget bottomNavBar({selectedPage, required BuildContext context}) {
           //     context, MaterialPageRoute(builder: (context) => const Home()));
           break;
         case 3:
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => const SettingsPage()));
+          // Navigator.popUntil(context, (route) => !route.isCurrent);
+          // Navigator.push(context,
+          //     MaterialPageRoute(builder: (context) => const SettingsPage()));
+          Navigator.pushReplacement(context, MaterialPageRoute(
+            builder: (context) {
+              return const SettingsPage();
+            },
+          ));
           break;
         default:
       }

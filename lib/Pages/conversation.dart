@@ -10,6 +10,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:chat_app/models/global.dart';
 import 'package:get/get.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_sound/flutter_sound.dart';
@@ -17,6 +18,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:uuid/uuid.dart';
 import 'package:image_picker_plus/image_picker_plus.dart';
 import 'package:video_player/video_player.dart';
+
 class Conversation extends StatefulWidget {
   const Conversation(
       {super.key,
@@ -35,6 +37,7 @@ class _ConversationState extends State<Conversation> {
   final thisWidth = Get.width;
   final record = FlutterSoundRecorder();
   final _storage = FirebaseStorage.instance;
+  Map<String, VideoPlayerController> controllers = {};
   FirebaseFirestore firestore = FirebaseFirestore.instance;
   FirebaseFunctions functions = FirebaseFunctions.instance;
   FirebaseStorage storage = FirebaseStorage.instance;
@@ -136,15 +139,51 @@ class _ConversationState extends State<Conversation> {
   }
 
   Widget renderVideo(MessageData data, BuildContext context) {
-    print('video here ${data.message}');
-    VideoPlayerController _controller =
+    controllers[data.messageId!] ??=
         VideoPlayerController.networkUrl(Uri.parse(data.message!));
+    var controller = controllers[data.messageId!];
+    if (!controller!.value.isInitialized) {
+      controller.initialize().then((_) {
+        if (context.mounted) {
+        setState(() {});
+        }
+      });
+      controller.setLooping(true);
+    }
 
-    return SizedBox(
-      width: thisWidth * 0.7,
-      child: const Text(
-          "this is a video \nThis Version doesn't support videos yet\nPlease download the latest update if available"),
-    );
+    if (controller.value.isInitialized) {
+      return SizedBox(
+        width: thisWidth * 0.7,
+        child: AspectRatio(
+            aspectRatio: controller.value.aspectRatio,
+            child: Stack(alignment: Alignment.center, children: [
+              VideoPlayer(controller),
+              IconButton(
+                  onPressed: () {
+                    setState(() {
+                      if (controller.value.isPlaying) {
+                        controller.pause();
+                      } else {
+                        controller.play();
+                      }
+                    });
+                  },
+                  icon: Icon(
+                    controller.value.isPlaying ? Icons.pause : Icomoon.Play,
+                    color: Colors.white,
+                  )),
+            ])),
+      );
+    } else {
+      return Shimmer.fromColors(
+        baseColor: Colors.red,
+        highlightColor: Colors.green,
+        child: SizedBox(
+          height: thisHeight * 0.3,
+          width: thisWidth * 0.7,
+        ),
+      );
+    }
   }
 
   Widget renderMessage(MessageData data, BuildContext context) {
@@ -282,6 +321,9 @@ class _ConversationState extends State<Conversation> {
       }
     } else {
       sendImage(ImageSource.camera);
+      for (var token in interlocuter!.token!) {
+        await sendMessage(token, "Sent an image");
+      }
     }
   }
 
@@ -299,7 +341,6 @@ class _ConversationState extends State<Conversation> {
   void dispose() {
     super.dispose();
     record.closeRecorder();
-    
   }
 
   Future<void> startRecord() async {
@@ -323,26 +364,34 @@ class _ConversationState extends State<Conversation> {
 
     if (widget.lastMessages.isNotEmpty) {
       for (var element in widget.lastMessages) {
-        firestore
-            .collection("Rooms")
-            .doc(widget.roomId)
-            .collection("messages")
-            .where("isRead", isEqualTo: false)
-            .get()
-            .then((value) => {
-                  for (var ele in value.docs)
-                    {
-                      if (ele["senderId"] != Auth().currentUser!.uid)
-                        {
-                          firestore
-                              .collection("Rooms")
-                              .doc(widget.roomId)
-                              .collection("messages")
-                              .doc(ele.id)
-                              .update({"isRead": true})
-                        }
-                    }
-                });
+        try {
+          firestore
+              .collection("Rooms")
+              .doc(widget.roomId)
+              .collection("messages")
+              .where("isRead", isEqualTo: false)
+              .get()
+              .then((value) => {
+                    for (var ele in value.docs)
+                      {
+                        if (ele["senderId"] != Auth().currentUser!.uid)
+                          {
+                            firestore
+                                .collection("Rooms")
+                                .doc(widget.roomId)
+                                .collection("messages")
+                                .doc(ele.id)
+                                .update({"isRead": true})
+                          }
+                      }
+                  });
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.toString()),
+            ),
+          );
+        }
       }
     }
   }
@@ -360,9 +409,7 @@ class _ConversationState extends State<Conversation> {
             color: black,
           ),
           onPressed: () {
-            Navigator.pop(context, () {
-              setState(() {});
-            });
+            Navigator.pop(context);
           },
         ),
         title: StreamBuilder(

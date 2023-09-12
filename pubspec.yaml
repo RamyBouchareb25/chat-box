@@ -61,6 +61,7 @@ dependencies:
   elastic_client: ^0.3.12
   image_picker_plus: ^0.5.9
   video_player: ^2.7.1
+  url_launcher: ^6.1.11
 
 dev_dependencies:
   flutter_test:
