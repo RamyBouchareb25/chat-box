@@ -1,3 +1,4 @@
+import 'package:chat_app/Classes/custom_page_route.dart';
 import 'package:chat_app/Pages/home_page.dart';
 import 'package:chat_app/Pages/settings.dart';
 import 'package:chat_app/models/google_sign_in.dart';
@@ -72,11 +73,12 @@ Widget bottomNavBar({selectedPage, required BuildContext context}) {
           // Navigator.popUntil(context, (route) => !route.isCurrent);
           // Navigator.push(
           //     context, MaterialPageRoute(builder: (context) => const Home()));
-          Navigator.pushReplacement(context, MaterialPageRoute(
-            builder: (context) {
-              return const Home();
-            },
-          ));
+          Navigator.pushReplacement(
+              context,
+              CustomPageRoute(
+                child: const Home(),
+                axis: AxisDirection.left,
+              ));
           break;
         case 1:
           // Navigator.push(
@@ -90,11 +92,12 @@ Widget bottomNavBar({selectedPage, required BuildContext context}) {
           // Navigator.popUntil(context, (route) => !route.isCurrent);
           // Navigator.push(context,
           //     MaterialPageRoute(builder: (context) => const SettingsPage()));
-          Navigator.pushReplacement(context, MaterialPageRoute(
-            builder: (context) {
-              return const SettingsPage();
-            },
-          ));
+          Navigator.pushReplacement(
+              context,
+              CustomPageRoute(
+                child: const SettingsPage(),
+                axis: AxisDirection.right,
+              ));
           break;
         default:
       }

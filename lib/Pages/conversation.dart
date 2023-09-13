@@ -66,7 +66,7 @@ class _ConversationState extends State<Conversation> {
       throw Exception('Could not launch $parsedUrl');
     }
   }
-  
+
   Future<void> sendImage(ImageSource source) async {
     ImagePickerPlus picker = ImagePickerPlus(context);
     SelectedImagesDetails? images = await picker.pickBoth(
@@ -358,7 +358,7 @@ class _ConversationState extends State<Conversation> {
           .collection("messages")
           .add(MessageData(
                   id: widget.roomId,
-                  message: messageController.text,
+                  message: messageController.text.trim(),
                   messageId: const Uuid().v4(),
                   receiverId: widget.user.uid,
                   senderId: Auth().currentUser!.uid,

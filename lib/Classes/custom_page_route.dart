@@ -29,5 +29,5 @@ class CustomPageRoute extends PageRouteBuilder {
           child: child);
 
   @override
-  Duration get transitionDuration => const Duration(milliseconds: 500);
+  Duration get transitionDuration => const Duration(milliseconds: 250);
 }

@@ -43,7 +43,6 @@ class _SettingsPageState extends State<SettingsPage> {
       appBar: DefaultAppBar(
         title: "Settings",
         context: context,
-        controller: TextEditingController(),
       ),
       body: Column(
         children: [

@@ -10,12 +10,10 @@ class DefaultAppBar extends StatefulWidget implements PreferredSizeWidget {
       required this.title,
       required this.context,
       this.image,
-      required this.controller,
       this.heroTag = false});
   final String title;
   final BuildContext context;
   final ImageProvider? image;
-  final TextEditingController controller;
   final bool heroTag;
   @override
   Size get preferredSize => Size(MediaQuery.of(context).size.width,

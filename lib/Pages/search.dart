@@ -78,33 +78,16 @@ class _SearchPageState extends State<SearchPage> {
     return users;
   }
 
-  Future<void> _createRoom(UserModel user, BuildContext ctx) async {
-    final newRoom = await _firestore.collection("Rooms").add({
+  Future<DocumentReference<Map<String, dynamic>>> _createRoom(
+      UserModel user) async {
+    var newRoom = await _firestore.collection("Rooms").add({
       "users": [user.uid, Auth().currentUser!.uid],
     });
-    final testMessage = await _firestore
-        .collection("Rooms")
-        .doc(newRoom.id)
-        .collection("messages")
-        .add(MessageData(
-          senderId: Auth().currentUser!.uid,
-          timestamp: DateTime.now().toString(),
-        ).toMap());
-    await _firestore
-        .collection("Rooms")
-        .doc(newRoom.id)
-        .collection("messages")
-        .doc(testMessage.id)
-        .delete();
-    Navigator.push(context, MaterialPageRoute(
-      builder: (context) {
-        return Conversation(
-            roomId: newRoom.id,
-            user: user,
-            lastMessages: const <MessageData>[]);
-      },
-    ));
-    Navigator.pop(ctx);
+    await _firestore.collection("Rooms").doc(newRoom.id).update({
+      "isTyping": {"User1": false, "User2": false},
+      "LastMsgTime": DateTime.now().toString()
+    });
+    return newRoom;
   }
 
   bool isLoading = false;
@@ -179,7 +162,7 @@ class _SearchPageState extends State<SearchPage> {
                   ),
                   FutureBuilder(
                       future: _usersFuture,
-                      builder: (context, snapshot) {
+                      builder: (ctx, snapshot) {
                         if (!snapshot.hasData) {
                           return const Center(
                             child: CircularProgressIndicator(),
@@ -193,41 +176,65 @@ class _SearchPageState extends State<SearchPage> {
                         return Expanded(
                           child: ListView.builder(
                             itemCount: snapshot.data!.length,
-                            itemBuilder: (context, index) {
+                            itemBuilder: (ctx2, index) {
                               UserModel user = snapshot.data![index];
                               return ListTile(
-                                onTap: () async {
-                                  setState(() {});
-                                  final Room1 = await _firestore
+                                onTap: () {
+                                  // setState(() {});
+                                  _firestore
                                       .collection("Rooms")
                                       .where("users", isEqualTo: [
-                                    user.uid,
-                                    Auth().currentUser!.uid
-                                  ]).get();
-                                  final Room2 = await _firestore
-                                      .collection("Rooms")
-                                      .where("users", isEqualTo: [
-                                    Auth().currentUser!.uid,
-                                    user.uid
-                                  ]).get();
-                                  final roomExists = Room1.docs.isNotEmpty ||
-                                      Room2.docs.isNotEmpty;
-                                  if (roomExists) {
-                                    Navigator.push(context, MaterialPageRoute(
-                                      builder: (context) {
-                                        return Conversation(
-                                            roomId: Room1.docs.isNotEmpty
-                                                ? Room1.docs.first.id
-                                                : Room2.docs.first.id,
-                                            user: user,
-                                            lastMessages: const <
-                                                MessageData>[]);
-                                      },
-                                    ));
-                                    Navigator.pop(grandContext);
-                                  } else {
-                                    _createRoom(user, grandContext);
-                                  }
+                                        user.uid,
+                                        Auth().currentUser!.uid
+                                      ])
+                                      .get()
+                                      .then((room1) {
+                                        _firestore
+                                            .collection("Rooms")
+                                            .where("users", isEqualTo: [
+                                              Auth().currentUser!.uid,
+                                              user.uid
+                                            ])
+                                            .get()
+                                            .then((room2) {
+                                              final roomExists =
+                                                  room1.docs.isNotEmpty ||
+                                                      room2.docs.isNotEmpty;
+                                              if (roomExists) {
+                                                Navigator.of(context).pop();
+                                                Navigator.push(context,
+                                                    MaterialPageRoute(
+                                                  builder: (context) {
+                                                    return Conversation(
+                                                        roomId: room1
+                                                                .docs.isNotEmpty
+                                                            ? room1
+                                                                .docs.first.id
+                                                            : room2
+                                                                .docs.first.id,
+                                                        user: user,
+                                                        lastMessages: const <
+                                                            MessageData>[]);
+                                                  },
+                                                ));
+                                              } else {
+                                                _createRoom(user)
+                                                    .then((newRoom) {
+                                                  Navigator.of(context).pop();
+                                                  Navigator.of(context)
+                                                      .push(MaterialPageRoute(
+                                                    builder: (ctx3) {
+                                                      return Conversation(
+                                                          roomId: newRoom.id,
+                                                          user: user,
+                                                          lastMessages: const <
+                                                              MessageData>[]);
+                                                    },
+                                                  ));
+                                                });
+                                              }
+                                            });
+                                      });
                                 },
                                 leading: CircleAvatar(
                                   backgroundColor: Colors.transparent,

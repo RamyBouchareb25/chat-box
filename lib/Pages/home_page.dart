@@ -1,16 +1,15 @@
 import 'package:chat_app/Classes/custom_page_route.dart';
 import 'package:chat_app/Classes/message.dart';
 import 'package:chat_app/Pages/conversation.dart';
+import 'package:chat_app/Pages/profile.dart';
 import 'package:chat_app/components/appbar.dart';
 import 'package:chat_app/models/global.dart';
 import 'package:chat_app/models/user_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:chat_app/auth.dart';
-import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:pull_to_refresh/pull_to_refresh.dart';
@@ -26,7 +25,7 @@ class _HomeState extends State<Home> {
   final User? user = Auth().currentUser;
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final int messageMaxLength = 18;
-
+  bool isDisposed = false;
   FirebaseStorage storage = FirebaseStorage.instance;
   List<UserModel> users = [];
   List<String> urls = [];
@@ -41,7 +40,16 @@ class _HomeState extends State<Home> {
 
   Future<void> constantRefresh() async {
     await _onRefresh();
-    constantRefresh();
+    await Future.delayed(const Duration(seconds: 1));
+    if (!isDisposed) {
+      constantRefresh();
+    }
+  }
+
+  @override
+  void dispose() {
+    isDisposed = true;
+    super.dispose();
   }
 
   Stream<QuerySnapshot<Map<String, dynamic>>> _getMessages(
@@ -66,7 +74,7 @@ class _HomeState extends State<Home> {
     Auth.setuser();
     var value = await _getUsers();
     var snapshot = await _getRooms();
-    if (context.mounted) {
+    if (!isDisposed && context.mounted) {
       setState(() {
         users = [];
         for (var index = 0; index < snapshot.docs.length; index++) {
@@ -82,7 +90,7 @@ class _HomeState extends State<Home> {
         }
       });
     }
-    if (!firstTimeLoading && context.mounted) {
+    if (!isDisposed && !firstTimeLoading && context.mounted) {
       lastMessages = [];
     }
     firstTimeLoading = false;
@@ -143,19 +151,12 @@ class _HomeState extends State<Home> {
     // });
     // Auth().currentUser!.updatePhotoURL(
     //     "https://firebasestorage.googleapis.com/v0/b/chatbox-3dac1.appspot.com/o/Profile%20Photos%2Fmejpg.jpg?alt=media&token=20625eb2-e272-49b8-bcec-c7e762e4a786");
-    if (kDebugMode) {
-      try {
-        print(Auth.userModel!.toMap());
-      } catch (e) {
-        printError(info: e.toString());
-      }
-    }
+
     return Scaffold(
         resizeToAvoidBottomInset: true,
         backgroundColor: black,
         appBar: DefaultAppBar(
           heroTag: true,
-          controller: TextEditingController(),
           title: "Home",
           context: context,
           image: NetworkImage(user!.photoURL ??
@@ -194,23 +195,34 @@ class _HomeState extends State<Home> {
                                           child: Stack(
                                               alignment: Alignment.center,
                                               children: [
-                                                CircleAvatar(
-                                                  radius: 30,
-                                                  backgroundColor: Colors.white,
-                                                  backgroundImage: i == 0
-                                                      ? NetworkImage(
-                                                          user!.photoURL!)
-                                                      : users.length > index
-                                                          ? NetworkImage(users[
-                                                                          index]
-                                                                      .profilePhoto !=
-                                                                  ""
-                                                              ? users[index]
-                                                                  .profilePhoto!
-                                                              : "https://firebasestorage.googleapis.com/v0/b/chatbox-3dac1.appspot.com/o/Images%2FProfile-Dark.png?alt=media&token=14a7aa82-5323-4903-90fc-a2738bd42577")
-                                                          : const AssetImage(
-                                                                  "Assets/Profile-Dark.png")
-                                                              as ImageProvider,
+                                                InkWell(
+                                                  onTap: () {
+                                                    Navigator.of(context).push(
+                                                        CustomPageRoute(
+                                                            child:
+                                                                const Profile(),
+                                                            axis: AxisDirection
+                                                                .right));
+                                                  },
+                                                  child: CircleAvatar(
+                                                    radius: 30,
+                                                    backgroundColor:
+                                                        Colors.white,
+                                                    backgroundImage: i == 0
+                                                        ? NetworkImage(
+                                                            user!.photoURL!)
+                                                        : users.length > index
+                                                            ? NetworkImage(users[
+                                                                            index]
+                                                                        .profilePhoto !=
+                                                                    ""
+                                                                ? users[index]
+                                                                    .profilePhoto!
+                                                                : "https://firebasestorage.googleapis.com/v0/b/chatbox-3dac1.appspot.com/o/Images%2FProfile-Dark.png?alt=media&token=14a7aa82-5323-4903-90fc-a2738bd42577")
+                                                            : const AssetImage(
+                                                                    "Assets/Profile-Dark.png")
+                                                                as ImageProvider,
+                                                  ),
                                                 ),
                                                 Positioned(
                                                   bottom: 10,
@@ -505,13 +517,15 @@ class _HomeState extends State<Home> {
                                                                     FontWeight
                                                                         .bold)),
                                                         Text(
-                                                            lastMessage!.id ==
-                                                                    null
-                                                                ? "No Messages Yet"
-                                                                : timeago.format(
-                                                                    DateTime.parse(
+                                                            lastMessage != null
+                                                                ? lastMessage!
+                                                                            .id ==
+                                                                        null
+                                                                    ? "No Messages Yet"
+                                                                    : timeago.format(DateTime.parse(
                                                                         lastMessage!
-                                                                            .timestamp!)),
+                                                                            .timestamp!))
+                                                                : "failed to retreive msg please Refresh !",
                                                             style:
                                                                 const TextStyle(
                                                                     fontSize:
@@ -542,7 +556,7 @@ class _HomeState extends State<Home> {
                                                       children: [
                                                         showLastMessage(
                                                             lastMessage:
-                                                                lastMessage,
+                                                                lastMessage!,
                                                             user: user),
                                                         lastMessages.any((element) =>
                                                                     element
@@ -635,10 +649,10 @@ class _HomeState extends State<Home> {
   }
 }
 
-Widget showLastMessage({MessageData? lastMessage, User? user}) {
+Widget showLastMessage({required MessageData lastMessage, User? user}) {
   int messageMaxLength = 18;
   var messsage = "";
-  if (lastMessage!.senderId == null) {
+  if (lastMessage.senderId == null) {
     messsage = "No Messages Yet";
   } else if (lastMessage.senderId == user!.uid) {
     messsage = "You: ";
@@ -670,7 +684,7 @@ Widget showLastMessage({MessageData? lastMessage, User? user}) {
       messsage += "Sent a Sticker";
       break;
     default:
-      messsage += "Sent a Message";
+      messsage += "";
       break;
   }
 
