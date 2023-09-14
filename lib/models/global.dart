@@ -25,6 +25,7 @@ const Color grey = Color.fromARGB(255, 121, 124, 123);
 const Color dark = Color.fromARGB(252, 18, 20, 20);
 const Color light = Color.fromARGB(255, 242, 247, 251);
 const Color grey2 = Color(0xFFF2F7FB);
+const Color darkGreen = Color(0xFF051D13);
 AppBar appBar(BuildContext context) {
   return AppBar(
     leading: IconButton(

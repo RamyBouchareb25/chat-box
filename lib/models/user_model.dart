@@ -25,6 +25,16 @@ class UserModel {
       token: map['tokens'],
     );
   }
+  factory UserModel.fromMapElastic(Map<String, dynamic> map) {
+    return UserModel(
+      uid: map['UserId'],
+      name: map['Name'],
+      email: map['email'],
+      status: map['Status'],
+      profilePhoto: map['PhotoUrl'],
+      token: map['tokens'],
+    );
+  }
 
   Map<String, dynamic> toMap() {
     return {

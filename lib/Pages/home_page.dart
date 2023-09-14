@@ -199,8 +199,10 @@ class _HomeState extends State<Home> {
                                                   onTap: () {
                                                     Navigator.of(context).push(
                                                         CustomPageRoute(
-                                                            child:
-                                                                const Profile(),
+                                                            child: Profile(
+                                                              user:
+                                                                  users[index],
+                                                            ),
                                                             axis: AxisDirection
                                                                 .right));
                                                   },

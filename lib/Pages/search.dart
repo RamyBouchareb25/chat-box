@@ -1,6 +1,4 @@
-import 'package:chat_app/Classes/message.dart';
-import 'package:chat_app/Pages/conversation.dart';
-import 'package:chat_app/auth.dart';
+import 'package:chat_app/Pages/profile.dart';
 import 'package:chat_app/models/global.dart';
 import 'package:chat_app/models/icomoon_icons.dart';
 import 'package:chat_app/models/user_model.dart';
@@ -65,7 +63,8 @@ class _SearchPageState extends State<SearchPage> {
       }
 
       for (var element in response.hits) {
-        var user = UserModel.fromMap(element.doc as Map<String, dynamic>);
+        var user =
+            UserModel.fromMapElastic(element.doc as Map<String, dynamic>);
         users.add(user);
       }
     } catch (e) {
@@ -76,18 +75,6 @@ class _SearchPageState extends State<SearchPage> {
       );
     }
     return users;
-  }
-
-  Future<DocumentReference<Map<String, dynamic>>> _createRoom(
-      UserModel user) async {
-    var newRoom = await _firestore.collection("Rooms").add({
-      "users": [user.uid, Auth().currentUser!.uid],
-    });
-    await _firestore.collection("Rooms").doc(newRoom.id).update({
-      "isTyping": {"User1": false, "User2": false},
-      "LastMsgTime": DateTime.now().toString()
-    });
-    return newRoom;
   }
 
   bool isLoading = false;
@@ -180,61 +167,11 @@ class _SearchPageState extends State<SearchPage> {
                               UserModel user = snapshot.data![index];
                               return ListTile(
                                 onTap: () {
-                                  // setState(() {});
-                                  _firestore
-                                      .collection("Rooms")
-                                      .where("users", isEqualTo: [
-                                        user.uid,
-                                        Auth().currentUser!.uid
-                                      ])
-                                      .get()
-                                      .then((room1) {
-                                        _firestore
-                                            .collection("Rooms")
-                                            .where("users", isEqualTo: [
-                                              Auth().currentUser!.uid,
-                                              user.uid
-                                            ])
-                                            .get()
-                                            .then((room2) {
-                                              final roomExists =
-                                                  room1.docs.isNotEmpty ||
-                                                      room2.docs.isNotEmpty;
-                                              if (roomExists) {
-                                                Navigator.of(context).pop();
-                                                Navigator.push(context,
-                                                    MaterialPageRoute(
-                                                  builder: (context) {
-                                                    return Conversation(
-                                                        roomId: room1
-                                                                .docs.isNotEmpty
-                                                            ? room1
-                                                                .docs.first.id
-                                                            : room2
-                                                                .docs.first.id,
-                                                        user: user,
-                                                        lastMessages: const <
-                                                            MessageData>[]);
-                                                  },
-                                                ));
-                                              } else {
-                                                _createRoom(user)
-                                                    .then((newRoom) {
-                                                  Navigator.of(context).pop();
-                                                  Navigator.of(context)
-                                                      .push(MaterialPageRoute(
-                                                    builder: (ctx3) {
-                                                      return Conversation(
-                                                          roomId: newRoom.id,
-                                                          user: user,
-                                                          lastMessages: const <
-                                                              MessageData>[]);
-                                                    },
-                                                  ));
-                                                });
-                                              }
-                                            });
-                                      });
+                                  Navigator.push(context, MaterialPageRoute(
+                                    builder: (context) {
+                                      return Profile(user: user);
+                                    },
+                                  ));
                                 },
                                 leading: CircleAvatar(
                                   backgroundColor: Colors.transparent,
